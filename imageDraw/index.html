@@ -2,48 +2,97 @@
 <html>
   <head>
       <title>HTML5 Create HTML5 Canvas JavaScript Drawing App Example</title>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
       <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js"></script>
       <style>
-      canvas { border: 1px solid #ccc; }
-      .outsideWrapper{ 
-          /* width:256px; height:256px; */
+      /* canvas { border: 1px solid #ccc; } */
+      /* .outsideWrapper{ 
+           width:256px; height:256px; 
           position:absolute; top:50px; left:50px; 
           margin:20px 20px; 
-          border:1px solid rgb(255, 255, 255);}
-      .insideWrapper{ 
-          width:100%; height:100%; 
-          position:relative;}
-      .inputImage{ 
+          border:1px solid rgb(255, 255, 255);} */
+      .top-buffer-btn { margin-top:3px; }
+
+      .img-container{
+        position:relative;
+        /* display:inline-block; */
+      }
+      /* .inputImage{ 
           width:200%; height:200%; 
           position:absolute; top:0px; left:0px;
+      } */
+      .img-container .overlay{
+        opacity:0.5;
+        position:absolute; top:0px; left:0px;
+        background-color: rgba(0, 0, 0, 0);
       }
-      .canvasImage{ 
-          opacity:0.5;
-          position:absolute; top:0px; left:0px;
-          background-color: rgba(0, 0, 0, 0);
+      #container {position:relative;}
+      #canvas {position:absolute; top:0; left:0; z-index:3; opacity:0.5;}
+      .button {
+        /* background-color: #4CAF50; Green */
+
+        border: none;
+        color: white;
+        padding: 15px 32px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
       }
+    .button1 {background-color: #4CAF50;} /* Green */
+    .button2 {background-color: #008CBA;} /* Blue */
+    .button3 {background-color: #f44336;} /* Red */ 
+    .button4 {background-color: #c9cc0a;} /* Yellow */ 
+    .button5 {background-color: #7800af;} /* Purple */
+
       </style>
       <script type="text/javascript">
       $( document ).ready(function() {
           
         
         var img = document.getElementById('inputImage');
-        var canvasWidth = img.width; var cavasHeight = img.height;
-        var outsideWrapper = document.getElementById("wrapper");
         
+        
+        var btn1 = document.getElementById("btnmarker1");
+        var drawColor = window.getComputedStyle(btn1).backgroundColor;
+        var canvasWidth = img.width; var canvasHeight = img.height;
         var canvas = document.getElementById('canvas');
-        canvas.setAttribute('width', canvasWidth);
-        canvas.setAttribute('height', cavasHeight);
+        //var canvas = document.createElement('canvas')
+        var rect = img.getBoundingClientRect();
+        // console.log(img);
+        // var bodyRect = canvas.getBoundingClientRect(),
+        //     elemRect = img.getBoundingClientRect(),
+        //     offsetTop   = elemRect.top - bodyRect.top,
+        //     offsetLeft = elemRect.top - bodyRect.left;
+        // console.log("canvas",bodyRect)
+        // console.log("img",elemRect)
+        canvas.width = canvasWidth;
+        canvas.height= canvasHeight;
+
+
+        // canvas.setAttribute('width', rect.right-rect.left);
+        // canvas.setAttribute('height', rect.bottom-rect.top);
+        // canvas.setAttribute('top', rect.y)
+        // canvas.setAttribute('left', rect.x)
+        //canvas.setAttribute('class', )
+       // document.body.appendChild(canvas)
+
         if(typeof G_vmlCanvasManager != 'undefined') {
             canvas = G_vmlCanvasManager.initElement(canvas);
         }
         context = canvas.getContext("2d");
-        context.globalAlpha = 1
 
         $('#canvas').mousedown(function(event){
+
               paint = true;
-                mouseX = event.pageX - outsideWrapper.offsetLeft;
-                mouseY = event.pageY - outsideWrapper.offsetTop;
+                mouseX = event.pageX - canvas.offsetLeft;
+                mouseY = event.pageY - canvas.offsetTop;
               
               addClick(mouseX, mouseY);
 
@@ -52,8 +101,8 @@
 
         $('#canvas').mousemove(function(e){
               if(paint){
-                  mouseX = event.pageX - outsideWrapper.offsetLeft;
-                  mouseY = event.pageY - outsideWrapper.offsetTop;
+                  mouseX = event.pageX - canvas.offsetLeft;
+                  mouseY = event.pageY - canvas.offsetTop;
                 
                   addClick(mouseX, mouseY, true);
                   redraw();
@@ -63,10 +112,14 @@
 
         $('#canvas').mouseup(function(e){
               paint = false;
+              clickX=[];
+              clickY=[];
             });
 
         $('#canvas').mouseleave(function(e){
               paint = false;
+              clickX=[];
+              clickY=[];
             });
 
         $('#clear').click(function(){
@@ -89,9 +142,8 @@
         }
 
         function redraw(){
-          context.clearRect(0, 0, context.canvas.width, context.canvas.height); // Clears the canvas
-
-          context.strokeStyle = "pink";
+          //context.clearRect(0, 0, context.canvas.width, context.canvas.height); // Clears the canvas
+          context.strokeStyle = drawColor;
           context.lineJoin = "round";
           context.lineWidth = 5;
 
@@ -106,17 +158,46 @@
             context.closePath();
             context.stroke();
           }
+          
       }
     function fillBackground(){
       context.globalCompositeOperation='destination-atop';
       context.fillStyle='black';
-      context.globalAlpha=1;
       context.fillRect( 0,0, canvas.width,  canvas.height);
+      
     }
+  
       var btn = document.getElementById("btndownload");
       btn.onclick = function(){
-        fillBackground()
-        download(canvas, 'jatog.png')
+        context.save();
+        fillBackground();
+        download(canvas, 'jatog.png');
+        context.restore()
+        context.globalCompositeOperation='source-over';
+      };
+      
+      function changeDrawColor(button){
+      drawColor = window.getComputedStyle(button).backgroundColor;
+    }
+      var btn1 = document.getElementById("btnmarker1");
+      btn1.onclick = function(){
+        changeDrawColor(this);;
+      };
+      var btn2 = document.getElementById("btnmarker2");
+      btn2.onclick = function(){
+        changeDrawColor(this);  
+      };
+      var btn3 = document.getElementById("btnmarker3");
+      btn3.onclick = function(){
+        changeDrawColor(this);   
+      };
+      var btn4 = document.getElementById("btnmarker4");
+      btn4.onclick = function(){
+        changeDrawColor(this);  
+      };
+      var btn5 = document.getElementById("btnmarker5");
+      btn5.onclick = function(){
+        changeDrawColor(this);  
       };
 
       });
@@ -150,13 +231,87 @@
    </script>
    </head>
      <body>
-        <div class="outsideWrapper" id="wrapper">
-            <div class="insideWrapper">
-                <img src="car.png" class="coveredImage" id = "inputImage">
-                <canvas class="canvasImage" id = "canvas" opacity= 0.5></canvas>
-            </div>
+        <!-- <div class="row">
+              <p class="text-center">             
+              <div class="insideWrapper">
+                  <img src="something.jpeg" class="coveredImage" id = "inputImage">
+                  <canvas class="canvasImage" id = "canvas" opacity= 0.5></canvas>
+              </div>
+              </p>
         </div>
-       <button id="btndownload" >Download</button>
+        <div class='row'> 
+          <p class="text-center"><button id="btndownload" >Download</button>
+          <button id="btnmarker1" class = "button1" >stem</button>
+          <button id="btnmarker2" class = "button2" >branch</button>
+          <button id="btnmarker3" class = "button3" >bud</button>
+          <button id="btnmarker4" class = "button4" >branch2</button>
+          </p>
+      </div> -->
+
+<!-- 
+      <div class="img-container">  
+        <div>
+            <img src="something.jpeg" class="img-rounded" id="inputImage">
+          <div class="overlay">
+            <canvas  id = "canvas"></canvas>
+          </div>
+        </div>
+              <p> </p>
+              <button type="button" class="btn btn-secondary" id="btndownload">Download</button>
+              <button type="button" class="btn btn-primary" id="btnmarker1">Branch</button>
+              <button type="button" class="btn btn-success" id="btnmarker2">Bud</button>
+              <button type="button" class="btn btn-info"    id="btnmarker3">Branch2</button>
+              <button type="button" class="btn btn-warning" id="btnmarker4">mark4</button>
+              <button type="button" class="btn btn-danger"  id="btnmarker5">mark5</button>      
+ -->
+      
+      <div class="row">
+          
+          <div class="col-sm-4">
+          
+               <div class="img-container">
+          
+                  <img id = "inputImage" src="something.jpeg" alt="test">
+                  <canvas class="canvasImage" id = "canvas" opacity= 0.5></canvas>
+                  <!-- <img id = "pic2" src="something.jpeg" alt="test"> -->
+              
+                </div>
+
+            </div>
+          
+          <div class="col-sm-1">
+            <div class="row top-buffer-btn">
+            <button type="button" class="btn btn-primary" id="btnmarker1">Branch</button>
+            </div>
+            <div class="row top-buffer-btn">
+            <button type="button" class="btn btn-success" id="btnmarker2">Bud</button>
+            </div>
+            <div class="row top-buffer-btn">
+            <button type="button" class="btn btn-info"    id="btnmarker3">Branch2</button>
+            </div>
+            <div class="row top-buffer-btn">
+            <button type="button" class="btn btn-warning" id="btnmarker4">mark4</button>
+            </div>
+            <div class="row top-buffer-btn">
+            <button type="button" class="btn btn-danger"  id="btnmarker5">mark5</button>
+            </div>
+          </div>
+        </div>
+
+            </div>
+      </div>
+          
+          <p> </p>
+          <div class="row">
+            
+            
+            <div class="col-sm-4 center"><button type="button" class="btn btn-secondary" id="btndownload">Download</button></div>
+            
+              
+          </div>
+        
+
+          
     </body>
  </html>
  
