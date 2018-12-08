@@ -56,8 +56,6 @@
                   mouseY = event.pageY - outsideWrapper.offsetTop;
                 
                   addClick(mouseX, mouseY, true);
-
-
                   redraw();
               
               }
@@ -93,7 +91,7 @@
         function redraw(){
           context.clearRect(0, 0, context.canvas.width, context.canvas.height); // Clears the canvas
 
-          context.strokeStyle = "rgba(34,234,120, 1)";
+          context.strokeStyle = "green";
           context.lineJoin = "round";
           context.lineWidth = 5;
 
