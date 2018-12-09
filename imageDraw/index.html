@@ -4,10 +4,23 @@
       <title>HTML5 Create HTML5 Canvas JavaScript Drawing App Example</title>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1">
-      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+      <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
       <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
       <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-      <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js"></script>
+      <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.js"></script> -->
+
+      <!-- Latest compiled and minified CSS -->
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+
+      <!-- jQuery library -->
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+      <!-- Popper JS -->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+
+      <!-- Latest compiled JavaScript -->
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+
       <style>
       /* canvas { border: 1px solid #ccc; } */
       /* .outsideWrapper{ 
@@ -57,12 +70,31 @@
           
         
         var img = document.getElementById('inputImage');
+        var canvas = document.getElementById('canvas');
+
+        var canvasWidth = img.width; var canvasHeight = img.height;
+
+        if(typeof G_vmlCanvasManager != 'undefined') {
+            canvas = G_vmlCanvasManager.initElement(canvas);
+        }
+        context = canvas.getContext("2d");
         
+
+        thisclass = document.getElementsByClassName("col-sm-4 offset-md-2");
+        console.log(thisclass);
+        console.log(thisclass.unload);
         
+
+        
+
+
+        canvas.width = canvasWidth;
+        canvas.height= canvasHeight;
+
         var btn1 = document.getElementById("btnmarker1");
         var drawColor = window.getComputedStyle(btn1).backgroundColor;
-        var canvasWidth = img.width; var canvasHeight = img.height;
-        var canvas = document.getElementById('canvas');
+        
+        
         //var canvas = document.createElement('canvas')
         var rect = img.getBoundingClientRect();
         // console.log(img);
@@ -72,9 +104,8 @@
         //     offsetLeft = elemRect.top - bodyRect.left;
         // console.log("canvas",bodyRect)
         // console.log("img",elemRect)
-        canvas.width = canvasWidth;
-        canvas.height= canvasHeight;
-
+        
+        
 
         // canvas.setAttribute('width', rect.right-rect.left);
         // canvas.setAttribute('height', rect.bottom-rect.top);
@@ -83,16 +114,13 @@
         //canvas.setAttribute('class', )
        // document.body.appendChild(canvas)
 
-        if(typeof G_vmlCanvasManager != 'undefined') {
-            canvas = G_vmlCanvasManager.initElement(canvas);
-        }
-        context = canvas.getContext("2d");
+        
 
         $('#canvas').mousedown(function(event){
 
               paint = true;
-                mouseX = event.pageX - canvas.offsetLeft;
-                mouseY = event.pageY - canvas.offsetTop;
+                mouseX = event.pageX - img.offsetLeft;
+                mouseY = event.pageY - img.offsetTop;
               
               addClick(mouseX, mouseY);
 
@@ -101,13 +129,15 @@
 
         $('#canvas').mousemove(function(e){
               if(paint){
-                  mouseX = event.pageX - canvas.offsetLeft;
-                  mouseY = event.pageY - canvas.offsetTop;
-                
+                  mouseX = event.pageX - img.offsetLeft;
+                  mouseY = event.pageY - img.offsetTop;
+
                   addClick(mouseX, mouseY, true);
                   redraw();
+                  console.log(canvas.offsetLeft,canvas.offsetTop)
               
               }
+              
             });
 
         $('#canvas').mouseup(function(e){
@@ -231,55 +261,21 @@
    </script>
    </head>
      <body>
-        <!-- <div class="row">
-              <p class="text-center">             
-              <div class="insideWrapper">
-                  <img src="something.jpeg" class="coveredImage" id = "inputImage">
-                  <canvas class="canvasImage" id = "canvas" opacity= 0.5></canvas>
-              </div>
-              </p>
-        </div>
-        <div class='row'> 
-          <p class="text-center"><button id="btndownload" >Download</button>
-          <button id="btnmarker1" class = "button1" >stem</button>
-          <button id="btnmarker2" class = "button2" >branch</button>
-          <button id="btnmarker3" class = "button3" >bud</button>
-          <button id="btnmarker4" class = "button4" >branch2</button>
-          </p>
-      </div> -->
 
-<!-- 
-      <div class="img-container">  
-        <div>
-            <img src="something.jpeg" class="img-rounded" id="inputImage">
-          <div class="overlay">
-            <canvas  id = "canvas"></canvas>
-          </div>
-        </div>
-              <p> </p>
-              <button type="button" class="btn btn-secondary" id="btndownload">Download</button>
-              <button type="button" class="btn btn-primary" id="btnmarker1">Branch</button>
-              <button type="button" class="btn btn-success" id="btnmarker2">Bud</button>
-              <button type="button" class="btn btn-info"    id="btnmarker3">Branch2</button>
-              <button type="button" class="btn btn-warning" id="btnmarker4">mark4</button>
-              <button type="button" class="btn btn-danger"  id="btnmarker5">mark5</button>      
- -->
-      
-      <div class="row">
-          
-          <div class="col-sm-4">
-          
+      <!-- <div class="container-fluid"> -->
+      <div class="row top-buffer">
+          <!-- offset-md-2 -->
+          <div class="col-sm-4" id="mymodal">
+            
                <div class="img-container">
           
                   <img id = "inputImage" src="something.jpeg" alt="test">
                   <canvas class="canvasImage" id = "canvas" opacity= 0.5></canvas>
-                  <!-- <img id = "pic2" src="something.jpeg" alt="test"> -->
-              
                 </div>
 
             </div>
           
-          <div class="col-sm-1">
+          <div class="col-md-auto">
             <div class="row top-buffer-btn">
             <button type="button" class="btn btn-primary" id="btnmarker1">Branch</button>
             </div>
@@ -295,21 +291,15 @@
             <div class="row top-buffer-btn">
             <button type="button" class="btn btn-danger"  id="btnmarker5">mark5</button>
             </div>
+            <div class="row top-buffer-btn">
+              <button type="button" class="btn btn-secondary" id="btndownload">Download</button>
+            </div>
           </div>
         </div>
+      <!-- </div> -->
 
-            </div>
-      </div>
-          
-          <p> </p>
-          <div class="row">
-            
-            
-            <div class="col-sm-4 center"><button type="button" class="btn btn-secondary" id="btndownload">Download</button></div>
-            
-              
-          </div>
-        
+  
+    
 
           
     </body>
