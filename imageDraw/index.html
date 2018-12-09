@@ -29,6 +29,7 @@
           margin:20px 20px; 
           border:1px solid rgb(255, 255, 255);} */
       .top-buffer-btn { margin-top:3px; }
+      .top-buffer { margin-top:20px; }
 
       .img-container{
         position:relative;
@@ -45,24 +46,9 @@
       }
       #container {position:relative;}
       #canvas {position:absolute; top:0; left:0; z-index:3; opacity:0.5;}
-      .button {
-        /* background-color: #4CAF50; Green */
-
-        border: none;
-        color: white;
-        padding: 15px 32px;
-        text-align: center;
-        text-decoration: none;
-        display: inline-block;
-        font-size: 16px;
-        margin: 4px 2px;
-        cursor: pointer;
+      .my-btn {
+        width: 130px;
       }
-    .button1 {background-color: #4CAF50;} /* Green */
-    .button2 {background-color: #008CBA;} /* Blue */
-    .button3 {background-color: #f44336;} /* Red */ 
-    .button4 {background-color: #c9cc0a;} /* Yellow */ 
-    .button5 {background-color: #7800af;} /* Purple */
 
       </style>
       <script type="text/javascript">
@@ -262,36 +248,36 @@
    </script>
    </head>
      <body>
-      <div class ="container">
+      <div class ="container-fluid top-buffer">
       <div class="row top-buffer">
         <!-- <div class="col col-centered"> -->
 
-            <div class="col-md-auto col-centered">
+            <div class="col-sm-auto col-centered">
                <div class="img-container">
-                  <img id = "inputImage" src="something.jpeg" alt="test">
+                  <img id = "inputImage" src="something1.jpeg" alt="test">
                   <canvas class="canvasImage" id = "canvas" opacity= 0.5></canvas>
                 </div>
             </div>
           
-            <div class="col-md-auto">
+            <div class="col-sm-auto">
                 
-                <div class="row top-buffer-btn">
-                  <button type="button" class="btn btn-primary" id="btnmarker1">Branch</button>
+                <div class="row justify-content">
+                  <button type="button" class="btn btn-primary my-btn" id="btnmarker1" >Branch</button>
                 </div>
-                <div class="row top-buffer-btn">
-                  <button type="button" class="btn btn-success" id="btnmarker2">Bud</button>
+                <div class="row justify-content top-buffer-btn">
+                  <button type="button" class="btn btn-success my-btn" id="btnmarker2" >Bud</button>
                 </div>
-                <div class="row top-buffer-btn">
-                  <button type="button" class="btn btn-info"    id="btnmarker3">Branch2</button>
+                <div class="row justify-content top-buffer-btn">
+                  <button type="button" class="btn btn-info my-btn"    id="btnmarker3">Branch2</button>
                 </div>
-                <div class="row top-buffer-btn">
-                  <button type="button" class="btn btn-warning" id="btnmarker4">mark4</button>
+                <div class="row justify-content top-buffer-btn">
+                  <button type="button" class="btn btn-warning my-btn" id="btnmarker4">mark4</button>
                 </div>
-                <div class="row top-buffer-btn">
-                  <button type="button" class="btn btn-danger"  id="btnmarker5">mark5</button>
+                <div class="row justify-content top-buffer-btn">
+                  <button type="button" class="btn btn-danger my-btn"  id="btnmarker5">mark5</button>
                 </div>
-                <div class="row top-buffer-btn">
-                  <button type="button" class="btn btn-secondary" id="btndownload">Download</button>
+                <div class="row justify-content top-buffer-btn">
+                  <button type="button" class="btn btn-secondary my-btn" id="btndownload">Download</button>
                 </div>
             </div>
          <!-- </div> -->
