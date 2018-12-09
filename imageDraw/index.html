@@ -96,7 +96,8 @@
         
         
         //var canvas = document.createElement('canvas')
-        var rect = img.getBoundingClientRect();
+        var imgRect = img.getBoundingClientRect();
+        
         // console.log(img);
         // var bodyRect = canvas.getBoundingClientRect(),
         //     elemRect = img.getBoundingClientRect(),
@@ -119,8 +120,8 @@
         $('#canvas').mousedown(function(event){
 
               paint = true;
-                mouseX = event.pageX - img.offsetLeft;
-                mouseY = event.pageY - img.offsetTop;
+                mouseX = event.pageX - imgRect.left;
+                mouseY = event.pageY - imgRect.top;
               
               addClick(mouseX, mouseY);
 
@@ -129,8 +130,8 @@
 
         $('#canvas').mousemove(function(e){
               if(paint){
-                  mouseX = event.pageX - img.offsetLeft;
-                  mouseY = event.pageY - img.offsetTop;
+                  mouseX = event.pageX - imgRect.left;
+                  mouseY = event.pageY - imgRect.top;
 
                   addClick(mouseX, mouseY, true);
                   redraw();
@@ -261,46 +262,42 @@
    </script>
    </head>
      <body>
-
-      <!-- <div class="container-fluid"> -->
+      <div class ="container">
       <div class="row top-buffer">
-          <!-- offset-md-2 -->
-          <div class="col-sm-4" id="mymodal">
-            
+        <!-- <div class="col col-centered"> -->
+
+            <div class="col-md-auto col-centered">
                <div class="img-container">
-          
                   <img id = "inputImage" src="something.jpeg" alt="test">
                   <canvas class="canvasImage" id = "canvas" opacity= 0.5></canvas>
                 </div>
-
             </div>
           
-          <div class="col-md-auto">
-            <div class="row top-buffer-btn">
-            <button type="button" class="btn btn-primary" id="btnmarker1">Branch</button>
+            <div class="col-md-auto">
+                
+                <div class="row top-buffer-btn">
+                  <button type="button" class="btn btn-primary" id="btnmarker1">Branch</button>
+                </div>
+                <div class="row top-buffer-btn">
+                  <button type="button" class="btn btn-success" id="btnmarker2">Bud</button>
+                </div>
+                <div class="row top-buffer-btn">
+                  <button type="button" class="btn btn-info"    id="btnmarker3">Branch2</button>
+                </div>
+                <div class="row top-buffer-btn">
+                  <button type="button" class="btn btn-warning" id="btnmarker4">mark4</button>
+                </div>
+                <div class="row top-buffer-btn">
+                  <button type="button" class="btn btn-danger"  id="btnmarker5">mark5</button>
+                </div>
+                <div class="row top-buffer-btn">
+                  <button type="button" class="btn btn-secondary" id="btndownload">Download</button>
+                </div>
             </div>
-            <div class="row top-buffer-btn">
-            <button type="button" class="btn btn-success" id="btnmarker2">Bud</button>
-            </div>
-            <div class="row top-buffer-btn">
-            <button type="button" class="btn btn-info"    id="btnmarker3">Branch2</button>
-            </div>
-            <div class="row top-buffer-btn">
-            <button type="button" class="btn btn-warning" id="btnmarker4">mark4</button>
-            </div>
-            <div class="row top-buffer-btn">
-            <button type="button" class="btn btn-danger"  id="btnmarker5">mark5</button>
-            </div>
-            <div class="row top-buffer-btn">
-              <button type="button" class="btn btn-secondary" id="btndownload">Download</button>
-            </div>
-          </div>
-        </div>
-      <!-- </div> -->
-
-  
+         <!-- </div> -->
+      </div>
+    </div>
     
-
           
     </body>
  </html>
