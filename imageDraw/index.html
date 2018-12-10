@@ -20,14 +20,26 @@
 
       <!-- Latest compiled JavaScript -->
       <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+      
+      <script type="text/javascript" src="lib/blowup.js"></script>
+    </head>
 
       <style>
-      /* canvas { border: 1px solid #ccc; } */
-      /* .outsideWrapper{ 
-           width:256px; height:256px; 
-          position:absolute; top:50px; left:50px; 
-          margin:20px 20px; 
-          border:1px solid rgb(255, 255, 255);} */
+      
+
+      /* .top-buffer-btn { margin-top:3px; }
+      .top-buffer { margin-top:20px; }
+
+      .img-container > img{
+        position:relative;
+      }
+
+      #container {position:relative;}
+      #canvas {position:absolute; top:0; left:0; z-index:3; opacity:0.5; pointer-events: none}
+      .my-btn {
+        width: 130px;
+      } */
+      
       .top-buffer-btn { margin-top:3px; }
       .top-buffer { margin-top:20px; }
 
@@ -45,95 +57,79 @@
         background-color: rgba(0, 0, 0, 0);
       }
       #container {position:relative;}
-      #canvas {position:absolute; top:0; left:0; z-index:3; opacity:0.5;}
+      #canvas {position:absolute; top:0; left:0; z-index:3; opacity:0.5; pointer-events:none}
       .my-btn {
         width: 130px;
       }
 
       </style>
-      <script type="text/javascript">
+
+      <script type="text/javascript">      
       $( document ).ready(function() {
-          
-        
-        var img = document.getElementById('inputImage');
+       
+        var img = document.getElementById('inputImage');      
         var canvas = document.getElementById('canvas');
-
-        var canvasWidth = img.width; var canvasHeight = img.height;
-
-        if(typeof G_vmlCanvasManager != 'undefined') {
-            canvas = G_vmlCanvasManager.initElement(canvas);
-        }
-        context = canvas.getContext("2d");
+        var dataCanvas = canvas.toDataURL();
         
-
-        thisclass = document.getElementsByClassName("col-sm-4 offset-md-2");
-        console.log(thisclass);
-        console.log(thisclass.unload);
-        
-
-        
-
-
-        canvas.width = canvasWidth;
-        canvas.height= canvasHeight;
-
+        var zoom = 5;
+        var eraser = false;
+        var lineWidth = 10;
+        var minLineWidth = 5;
+        var maxLineWidth = 30;   
+        // Set first drawing color as first buton
         var btn1 = document.getElementById("btnmarker1");
-        var drawColor = window.getComputedStyle(btn1).backgroundColor;
-        
-        
-        //var canvas = document.createElement('canvas')
-        var imgRect = img.getBoundingClientRect();
-        
-        // console.log(img);
-        // var bodyRect = canvas.getBoundingClientRect(),
-        //     elemRect = img.getBoundingClientRect(),
-        //     offsetTop   = elemRect.top - bodyRect.top,
-        //     offsetLeft = elemRect.top - bodyRect.left;
-        // console.log("canvas",bodyRect)
-        // console.log("img",elemRect)
-        
-        
+        var drawColor = window.getComputedStyle(btn1).backgroundColor; 
+        //Gets position of image (= position of canvas) for use in mousevents 
+        var imgRect = img.getBoundingClientRect()
+        context = canvas.getContext("2d");
+        canvas.width = img.width;
+        canvas.height= img.height;
 
-        // canvas.setAttribute('width', rect.right-rect.left);
-        // canvas.setAttribute('height', rect.bottom-rect.top);
-        // canvas.setAttribute('top', rect.y)
-        // canvas.setAttribute('left', rect.x)
-        //canvas.setAttribute('class', )
-       // document.body.appendChild(canvas)
+        
+        function blowUp(atr){
+         $("img").blowup(atr)
+        };
+       
+         blowUp({ 
+          "scale"      : zoom,
+          "dataCanvas" : dataCanvas,
+          //"cursor"     : false,
+         });
 
         
 
-        $('#canvas').mousedown(function(event){
+        $('#inputImage').mousedown(function(event){
 
               paint = true;
-                mouseX = event.pageX - imgRect.left;
-                mouseY = event.pageY - imgRect.top;
+              mouseX = event.pageX - imgRect.left;
+              mouseY = event.pageY - imgRect.top;
               
               addClick(mouseX, mouseY);
 
               redraw();
             });
 
-        $('#canvas').mousemove(function(e){
+        $('#inputImage').mousemove(function(e){
+
               if(paint){
                   mouseX = event.pageX - imgRect.left;
                   mouseY = event.pageY - imgRect.top;
 
                   addClick(mouseX, mouseY, true);
                   redraw();
-                  console.log(canvas.offsetLeft,canvas.offsetTop)
+                 
               
               }
               
             });
 
-        $('#canvas').mouseup(function(e){
+        $('#inputImage').mouseup(function(e){
               paint = false;
               clickX=[];
               clickY=[];
             });
 
-        $('#canvas').mouseleave(function(e){
+        $('#inputImage').mouseleave(function(e){
               paint = false;
               clickX=[];
               clickY=[];
@@ -159,10 +155,12 @@
         }
 
         function redraw(){
-          //context.clearRect(0, 0, context.canvas.width, context.canvas.height); // Clears the canvas
+        
           context.strokeStyle = drawColor;
           context.lineJoin = "round";
-          context.lineWidth = 5;
+          context.lineWidth = lineWidth;
+          if(eraser){context.globalCompositeOperation="destination-out";}
+          else{context.globalCompositeOperation="source-over";}
 
           for(var i=0; i < clickX.length; i++) {        
             context.beginPath();
@@ -174,117 +172,211 @@
             context.lineTo(clickX[i], clickY[i]);
             context.closePath();
             context.stroke();
+            
           }
           
       }
-    function fillBackground(){
+        function fillBackground(){
       context.globalCompositeOperation='destination-atop';
       context.fillStyle='black';
       context.fillRect( 0,0, canvas.width,  canvas.height);
       
     }
   
-      var btn = document.getElementById("btndownload");
-      btn.onclick = function(){
-        context.save();
-        fillBackground();
-        download(canvas, 'jatog.png');
-        context.restore()
-        context.globalCompositeOperation='source-over';
-      };
-      
-      function changeDrawColor(button){
-      drawColor = window.getComputedStyle(button).backgroundColor;
-    }
-      var btn1 = document.getElementById("btnmarker1");
-      btn1.onclick = function(){
-        changeDrawColor(this);;
-      };
-      var btn2 = document.getElementById("btnmarker2");
-      btn2.onclick = function(){
+        var btnDownload = document.getElementById("btndownload");
+        btnDownload.onclick = function(){
+          context.save();
+          fillBackground();
+          download(canvas, 'jatog.png');
+          context.restore()
+          context.globalCompositeOperation='source-over';
+        };
+        
+        function changeDrawColor(button){
+        drawColor = window.getComputedStyle(button).backgroundColor;
+      }
+        var btn1 = document.getElementById("btnmarker1");
+        btn1.onclick = function(){
+          changeDrawColor(this);;
+        };
+        var btn2 = document.getElementById("btnmarker2");
+        btn2.onclick = function(){
+          changeDrawColor(this);  
+        };
+        var btn3 = document.getElementById("btnmarker3");
+        btn3.onclick = function(){
+          changeDrawColor(this);   
+        };
+        var btn4 = document.getElementById("btnmarker4");
+        btn4.onclick = function(){
+          changeDrawColor(this);  
+        };
+        var btn5 = document.getElementById("btnmarker5");
+        btn5.onclick = function(){
         changeDrawColor(this);  
       };
-      var btn3 = document.getElementById("btnmarker3");
-      btn3.onclick = function(){
-        changeDrawColor(this);   
-      };
-      var btn4 = document.getElementById("btnmarker4");
-      btn4.onclick = function(){
-        changeDrawColor(this);  
-      };
-      var btn5 = document.getElementById("btnmarker5");
-      btn5.onclick = function(){
-        changeDrawColor(this);  
-      };
+        var btnErase = document.getElementById("btnErase");
+        btnErase.onclick = function(){
+          if(eraser){eraser = false}
+          else{eraser=true}
+       };
+        var btnZoomIn = document.getElementById("btnZoomIn");
+        btnZoomIn.onclick = function(){
+            zoomOut();
+        };
+        var btnZoomOut = document.getElementById("btnZoomOut");
+        btnZoomOut.onclick = function(){
+            zoomOut();
+          };
 
+
+
+     
+        function download(canvas, filename) {
+          /// create an "off-screen" anchor tag
+          var lnk = document.createElement('a'), e;
+
+          /// the key here is to set the download attribute of the a tag
+          lnk.download = filename;
+
+          /// convert canvas content to data-uri for link. When download
+          /// attribute is set the content pointed to by link will be
+          /// pushed as "download" in HTML5 capable browsers
+          lnk.href = canvas.toDataURL("image/png;base64");
+
+          /// create a "fake" click-event to trigger the download
+          if (document.createEvent) {
+            e = document.createEvent("MouseEvents");
+            e.initMouseEvent("click", true, true, window,
+                            0, 0, 0, 0, 0, false, false, false,
+                            false, 0, null);
+
+            lnk.dispatchEvent(e);
+          } else if (lnk.fireEvent) {
+            lnk.fireEvent("onclick");
+          }
+        }
+    
+        var handleWheel = function (event) 
+        {
+        // cross-browser wheel delta
+        // Chrome / IE: both are set to the same thing - WheelEvent for Chrome, MouseWheelEvent for IE
+        // Firefox: first one is undefined, second one is MouseScrollEvent
+        var e = window.event || event;
+        
+        // Chrome / IE: first one is +/-120 (positive on mouse up), second one is zero
+        // Firefox: first one is undefined, second one is -/+3 (negative on mouse up)
+        var delta = Math.max(-1, Math.min(1, e.wheelDelta || -e.detail));
+        console.log("in index:",e.pageY,e.pageX);
+        // Do something with `delta`
+
+        if (delta > 0 ){zoomOut()}
+        else if (delta < 0){zoomIn()}
+
+        e.preventDefault();
+        };
+
+        function zoomIn(){
+          if (zoom > 1){zoom -= 0.25;}
+          else{zoom = 1}
+
+          if( lineWidth < maxLineWidth){lineWidth +=2;}
+          else{ lineWidth=maxLineWidth}
+          
+          //Adjust zoom of magnifier
+          var e = window.event || event;
+
+          blowUp({"scale" : zoom,  "dataCanvas" : dataCanvas,  "pageX" : e.pageX, "pageY" : e.pageY}) //"cursor"     : false,      }
+          $("img").mouseenter();
+          $("img").mousemove();
+        }
+        function zoomOut(){
+          if (zoom <8){ zoom += 0.25;}
+          if( lineWidth > minLineWidth){lineWidth -=2}
+          else{ lineWidth=minLineWidth}
+          
+          //Adjust zoom of magnifier
+          var e = window.event || event;
+
+          blowUp({"scale" : zoom,  "dataCanvas" : dataCanvas,  "pageX" : e.pageX, "pageY" : e.pageY}) //"cursor"     : false,      }
+          $("img").mouseenter();
+          $("img").mousemove();
+
+        }
+
+        var addMouseWheelEventListener = function (scrollHandler)
+        {
+        if (window.addEventListener) 
+        {
+            // IE9+, Chrome, Safari, Opera
+            window.addEventListener("mousewheel", scrollHandler, false);
+            // Firefox
+            window.addEventListener("DOMMouseScroll", scrollHandler, false);
+        } 
+        else 
+        {
+            // // IE 6/7/800px	
+            window.attachEvent("onmousewheel", scrollHandler);
+        }
+        }
+        addMouseWheelEventListener(handleWheel);
       });
-   </script>
 
-   <script>
-   function download(canvas, filename) {
-    /// create an "off-screen" anchor tag
-    var lnk = document.createElement('a'), e;
-
-    /// the key here is to set the download attribute of the a tag
-    lnk.download = filename;
-
-    /// convert canvas content to data-uri for link. When download
-    /// attribute is set the content pointed to by link will be
-    /// pushed as "download" in HTML5 capable browsers
-    lnk.href = canvas.toDataURL("image/png;base64");
-
-    /// create a "fake" click-event to trigger the download
-    if (document.createEvent) {
-      e = document.createEvent("MouseEvents");
-      e.initMouseEvent("click", true, true, window,
-                      0, 0, 0, 0, 0, false, false, false,
-                      false, 0, null);
-
-      lnk.dispatchEvent(e);
-    } else if (lnk.fireEvent) {
-      lnk.fireEvent("onclick");
-    }
-    }
    </script>
    </head>
      <body>
-      <div class ="container-fluid top-buffer">
-      <div class="row top-buffer">
-        <!-- <div class="col col-centered"> -->
-
-            <div class="col-sm-auto col-centered">
-               <div class="img-container">
-                  <img id = "inputImage" src="something1.jpeg" alt="test">
-                  <canvas class="canvasImage" id = "canvas" opacity= 0.5></canvas>
-                </div>
-            </div>
-          
-            <div class="col-sm-auto">
+        <div class ="container-fluid top-buffer">
+            <div class="row top-buffer">
+      
+                  <div class="col-sm-auto col-centered">
+                     <div class="img-container">
+                        <img id = "inputImage" src="something1.jpeg" alt="test">
+                        <canvas class="canvasImage" id = "canvas" opacity= 0.5></canvas>
+                      </div>
+                      <div class="row top-buffer-btn">
+                          <div class="col">
+                            <button type="button" class="btn btn-secondary my-btn" id="btnErase">Eraser</button>
+                          </div>
+                          
+                          <div class="col">
+                              <button type="button" class="btn btn-secondary my-btn" id="btnZoomIn">Zoom In (scroll)</button>
+                          </div>
+                          <div class="col">
+                              <button type="button" class="btn btn-secondary my-btn" id="btnZoomOut">Zoom Out (scroll)</button>
+                          </div>
+                          <div class="col">
+                              <button type="button" class="btn btn-secondary my-btn" id="btndownload">Download</button>
+                            </div>
+                        </div>
+                  </div>
                 
-                <div class="row justify-content">
-                  <button type="button" class="btn btn-primary my-btn" id="btnmarker1" >Branch</button>
-                </div>
-                <div class="row justify-content top-buffer-btn">
-                  <button type="button" class="btn btn-success my-btn" id="btnmarker2" >Bud</button>
-                </div>
-                <div class="row justify-content top-buffer-btn">
-                  <button type="button" class="btn btn-info my-btn"    id="btnmarker3">Branch2</button>
-                </div>
-                <div class="row justify-content top-buffer-btn">
-                  <button type="button" class="btn btn-warning my-btn" id="btnmarker4">mark4</button>
-                </div>
-                <div class="row justify-content top-buffer-btn">
-                  <button type="button" class="btn btn-danger my-btn"  id="btnmarker5">mark5</button>
-                </div>
-                <div class="row justify-content top-buffer-btn">
-                  <button type="button" class="btn btn-secondary my-btn" id="btndownload">Download</button>
-                </div>
+                  <div class="col-sm-auto">
+                      
+                      <div class="row justify-content">
+                        <button type="button" class="btn btn-primary my-btn" id="btnmarker1" >Branch</button>
+                      </div>
+                      <div class="row justify-content top-buffer-btn">
+                        <button type="button" class="btn btn-success my-btn" id="btnmarker2" >Bud</button>
+                      </div>
+                      <div class="row justify-content top-buffer-btn">
+                        <button type="button" class="btn btn-info my-btn"    id="btnmarker3">Branch2</button>
+                      </div>
+                      <div class="row justify-content top-buffer-btn">
+                        <button type="button" class="btn btn-warning my-btn" id="btnmarker4">mark4</button>
+                      </div>
+                      <div class="row justify-content top-buffer-btn">
+                        <button type="button" class="btn btn-danger my-btn"  id="btnmarker5">mark5</button>
+                      </div>
+                  </div>
+               
             </div>
-         <!-- </div> -->
-      </div>
-    </div>
-    
+          </div>
           
+    
+    
+
+    
+
     </body>
  </html>
  
