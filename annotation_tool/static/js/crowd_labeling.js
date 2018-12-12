@@ -165,7 +165,7 @@ imageObj.onload = function () {
             glass.fillPatternOffsetY(y / scale);
             glass.fillPatternScaleX(zoom * scale);
             glass.fillPatternScaleY(zoom * scale);
-            
+
             glassmask.radius(R);
             glassmask.x(x);
             glassmask.y(y);
@@ -188,18 +188,16 @@ imageObj.onload = function () {
     /* ============ drawing a Line ==============*/
     
     var tmpDrawLineLayer= new Kinetic.Layer();
-    stage.add(tmpDrawLineLayer);
+    // stage.add(tmpDrawLineLayer);
     function drawLine(mouseX, mouseY,lineThickness){
 
-
+        //This removes the previously drawn lines (of this session of line-drawing) 
         var groups = tmpDrawLineLayer.find('Shape');
         groups.each(function(group) {
             console.log(group)
             group.remove();
 
         });
-        
-        
 
         var _R = Math.round(lineThickness);
         var tmpDrawLine = new Kinetic.Line({
@@ -211,7 +209,6 @@ imageObj.onload = function () {
         });
 
         stage.add(tmpDrawLineLayer);
-        //tmpDrawLineLayer.moveToTop();
         tmpDrawLineLayer.add(tmpDrawLine);
         tmpDrawLineLayer.drawScene();
     }
