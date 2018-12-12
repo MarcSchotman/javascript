@@ -30,7 +30,12 @@ var lensOuterColor = 'white'
 
 var lineThickness = 10;
 var thicknessLens = 5;
+
 var painting = false;
+var drawingLine=false;
+var startLineX;
+var startLineY;
+var lineThicknessDrawLine = 3;
 var startX;
 var startY;
 var drawColor;// = window.getComputedStyle(btn1).backgroundColor; ;
@@ -107,10 +112,9 @@ imageObj.onload = function () {
         strokeWidth: thicknessLens,
         opacity: 1,
     });
-    console.log(glass)
+
 
     glassmask = new Kinetic.Circle({
-
         x: 256,
         y: 256,
         radius: R,
@@ -135,7 +139,6 @@ imageObj.onload = function () {
         glassDraw.fillPatternImage(explicitDrawImg);
         glassZoom();
     }
-    console.log(scale)
 
     function glassZoom() {
         var x = glass.x();
@@ -162,7 +165,7 @@ imageObj.onload = function () {
             glass.fillPatternOffsetY(y / scale);
             glass.fillPatternScaleX(zoom * scale);
             glass.fillPatternScaleY(zoom * scale);
-
+            
             glassmask.radius(R);
             glassmask.x(x);
             glassmask.y(y);
@@ -182,6 +185,80 @@ imageObj.onload = function () {
 
     }
 
+    /* ============ drawing a Line ==============*/
+    
+    var tmpDrawLineLayer= new Kinetic.Layer();
+    stage.add(tmpDrawLineLayer);
+    function drawLine(mouseX, mouseY,lineThickness){
+
+
+        var groups = tmpDrawLineLayer.find('Shape');
+        groups.each(function(group) {
+            console.log(group)
+            group.remove();
+
+        });
+        
+        
+
+        var _R = Math.round(lineThickness);
+        var tmpDrawLine = new Kinetic.Line({
+           points: [startLineX, startLineY, mouseX,mouseY],
+           stroke: drawColor,
+           strokeWidth: lineThicknessDrawLine,
+           opacity: opacityDraw,
+           
+        });
+
+        stage.add(tmpDrawLineLayer);
+        //tmpDrawLineLayer.moveToTop();
+        tmpDrawLineLayer.add(tmpDrawLine);
+        tmpDrawLineLayer.drawScene();
+    }
+    function addDrawnLine(mouseX, mouseY,){
+
+        var ctx = tmpDrawLineLayer.getContext();
+
+        if(startLineX < mouseX){ var x1 = startLineX, x2=mouseX}
+        else{var x1=mouseX, x2=startLineX}
+        if(startLineY < mouseY){ var y1 = startLineY, y2=mouseY}
+        else{var y1=mouseY, y2=startLineY}
+        var dx = x2 -x1;
+        var dy = y2 - y1;
+        if (dy<lineThicknessDrawLine){dy = lineThicknessDrawLine}
+        if (dx<lineThicknessDrawLine){dx = lineThicknessDrawLine}
+        var drawData = ctx.getImageData(x1, y1, dx, dy);
+        
+
+        var ctx = baseDrawLayer.getContext();
+
+        var imgData = ctx.getImageData(x1, y1, dx, dy);
+        //console.log(drawColor)
+
+        var RGB = drawColor.slice(4, -1);
+        var R = parseInt(RGB.split(",")[0]);
+        var G = parseInt(RGB.split(",")[1]);
+        var B = parseInt(RGB.split(",")[2]);
+
+        if (draw_state == DRAW) {
+
+            for (i = 0; i < imgData.data.length; i += 4) {
+
+                if (drawData.data[i + 3] != 0) {
+                    imgData.data[i] = R;
+                    imgData.data[i + 1] = G;
+                    imgData.data[i + 2] = B;
+                    imgData.data[i + 3] = parseInt(opacityDraw * 255);
+                }
+
+            }
+        } 
+        ctx.putImageData(imgData, x1, y1);
+        stage.states.isdrawbrush = false;
+        explicitDrawImg.src = baseDrawLayer.getCanvas().toDataURL();
+        baseDraw.fillPatternImage(explicitDrawImg);
+        isdrew = true;
+    }   
     /* ============ drawing layer ==============*/
     stage.add(baseDrawLayer);
     stage.on('mousedown', onmousedown);
@@ -193,15 +270,32 @@ imageObj.onload = function () {
             startY = ev.evt.clientY - $('#container').position().top + window.pageYOffset;
         }
         painting = true;
+
         if (zoom < 1) {
             var lineThickness = R / zoom;
         } else {
             var lineThickness = R / zoom;
         }
-        brush_draw(startX, startY, lineThickness);
+        if(drawingLine){
+            startLineX = startX;
+            startLineY = startY;
+            drawLine(startX, startY, lineThickness)
+        }
+        else{brush_draw(startX, startY, lineThickness);}
     }
     stage.on('mouseup', function (ev) {
         painting = false;
+        if(drawingLine){
+            var mouseX = ev.evt.x - $('#container').position().left + window.pageXOffset;;
+            var mouseY = ev.evt.y - $('#container').position().top + window.pageYOffset;
+            if (typeof mouseX === 'undefined') {
+                mouseX = ev.evt.clientX - $('#container').position().left + window.pageXOffset;;
+                mouseY = ev.evt.clientY; - $('#container').position().top + window.pageYOffset;
+            }
+            if(mouseX != startLineX){
+            addDrawnLine(mouseX,mouseY)
+            }
+        }
     });
 
     stage.on('mousemove', onmousemove)
@@ -227,6 +321,10 @@ imageObj.onload = function () {
         var dy = mouseY - startY;
         var rectCount = Math.sqrt(dx * dx + dy * dy) / (lineThickness);
 
+        if (drawingLine){
+            tmpDrawLine = drawLine(mouseX,mouseY,lineThickness)
+        }
+        else{
         if (rectCount <= 1) {
             brush_draw(mouseX, mouseY, lineThickness);
         } else {
@@ -236,7 +334,7 @@ imageObj.onload = function () {
                 var nextY = startY + dy * i / rectCount;
                 brush_draw(nextX, nextY, lineThickness);
             }
-        }
+        }}
         startX = mouseX;
         startY = mouseY;
     }
@@ -362,6 +460,11 @@ imageObj.onload = function () {
             }
               glassZoom();
           }
+          if (ev.which == 58 || ev.which == 67){
+            
+            drawingLine=true;
+          }
+
         
     });
     var handleWheel = function (event) {
@@ -444,9 +547,8 @@ $(document).ready(function () {
     function changeDrawColor(button) {
         drawColor = window.getComputedStyle(button).backgroundColor;
 
-        //Dunno why but this is nesceserry.... But it is.
+        //Dunno why but this works, jsut calling draw_toggle_brush(drawColor) does not for sxome reason.....
         draw_state = ERASE;
-        //trigger brush color inside magnifying glass
         jQuery.event.trigger({ type: 'keypress', which: 68 });
         draw_state = DRAW;
     }
@@ -481,6 +583,9 @@ $(document).ready(function () {
     btn5.onclick = function () {
         changeDrawColor(this);
     };
+    var btn6 = document.getElementById("btnwire");
+    btn6.onclick = function () {
+    };
 
     $(document).keypress(function (ev){
         if (ev.key=="a"){
@@ -502,9 +607,6 @@ $(document).ready(function () {
 
 })
 
-
-// image load end
-// loading demo image here
 
 imageObj.src = STATIC_ROOT + '/some.png'
 

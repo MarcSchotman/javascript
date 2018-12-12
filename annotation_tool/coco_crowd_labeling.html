@@ -67,7 +67,7 @@
         var init_time = $.now();
         DRAW = 1;
         ERASE = 0;
-        //DRAWLINE=
+        var drawingLine=false;
         draw_state = DRAW;
         var isOpera = !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
         // Opera 8.0+ (UA detection to detect Blink/v8-powered Opera)
@@ -86,6 +86,9 @@
             })
             $('#btn-erase').on('click', function(){
                 jQuery.event.trigger({ type : 'keypress', which : 69 });
+            })
+            $('#btn-line').on('click', function(){
+                jQuery.event.trigger({ type : 'keypress', which : 58 });
             })
             $('#btn-zoom-in').on('click', function(){
                 jQuery.event.trigger({ type : 'keypress', which : 90 });
@@ -184,6 +187,8 @@
             <i class="icon-pencil"></i> Draw (D)</button>
           <button id='btn-erase' type="button"  class="btn">
             <i class="fa fa-eraser"></i> Erase (E)</button>
+            <button id='btn-line' type="button"  class="btn">
+            <i class="fa fa-eraser"></i> Draw Line (T)</button>
       </span>
 
       <span class="btn-group" >
@@ -222,7 +227,7 @@
                 <button type="button" class="btn btn-danger my-btn"  id="btnmarker5">mark5 (S)</button>
                 </div>
                 <div class="span top-buffer-btn">
-                  <button type="button" class="btn btn-wire" id="btnmarker5">wire (S)</button>
+                  <button type="button" class="btn btn-wire" id="btnwire">wire (S)</button>
                 </div>
                 <div class="span top-buffer-btn">
                     <button type="button" class="btn btn-wounds  my-btn" id="btnmarker5">wounds (S)</button>
