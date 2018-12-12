@@ -25,21 +25,17 @@
     </head>
 
       <style>
-      
-
-      /* .top-buffer-btn { margin-top:3px; }
-      .top-buffer { margin-top:20px; }
-
-      .img-container > img{
-        position:relative;
-      }
-
-      #container {position:relative;}
-      #canvas {position:absolute; top:0; left:0; z-index:3; opacity:0.5; pointer-events: none}
-      .my-btn {
-        width: 130px;
+/*       
+      #BlowupLens{
+        opacity : 0.5;
       } */
-      
+      #BlowupLens{
+        position : absolute;
+      }
+      #BlowupLens:after{
+        opacity : 0.5;
+      }
+    
       .top-buffer-btn { margin-top:3px; }
       .top-buffer { margin-top:20px; }
 
@@ -47,10 +43,7 @@
         position:relative;
         /* display:inline-block; */
       }
-      /* .inputImage{ 
-          width:200%; height:200%; 
-          position:absolute; top:0px; left:0px;
-      } */
+   
       .img-container .overlay{
         opacity:0.5;
         position:absolute; top:0px; left:0px;
@@ -67,9 +60,13 @@
       <script type="text/javascript">      
       $( document ).ready(function() {
        
+        /** Decleration variables **/
         var img = document.getElementById('inputImage');      
         var canvas = document.getElementById('canvas');
-        var dataCanvas = canvas.toDataURL();
+        var dataCanvas = canvas.toDataURL("image/png");
+
+        var backgroundMagnifyingGlass = new Image();
+        
         
         var zoom = 5;
         var eraser = false;
@@ -81,6 +78,13 @@
         var drawColor = window.getComputedStyle(btn1).backgroundColor; 
         //Gets position of image (= position of canvas) for use in mousevents 
         var imgRect = img.getBoundingClientRect()
+        var clickX = new Array();
+        var clickY = new Array();
+        var clickDrag = new Array();
+        var paint;
+        
+        backgroundMagnifyingGlass.src =img.src;
+
         context = canvas.getContext("2d");
         canvas.width = img.width;
         canvas.height= img.height;
@@ -116,9 +120,7 @@
                   mouseY = event.pageY - imgRect.top;
 
                   addClick(mouseX, mouseY, true);
-                  redraw();
-                 
-              
+                  redraw();    
               }
               
             });
@@ -141,11 +143,6 @@
           clickDrag.length = 0;
           redraw();
         });
-
-        var clickX = new Array();
-        var clickY = new Array();
-        var clickDrag = new Array();
-        var paint;
 
         function addClick(x, y, dragging)
         {
@@ -171,10 +168,11 @@
             }
             context.lineTo(clickX[i], clickY[i]);
             context.closePath();
-            context.stroke();
-            
-          }
-          
+            context.stroke(); 
+          };
+
+        context.globalCompositeOperation = "lighter";
+        dataCanvas = canvas.toDataURL("image/png");  
       }
         function fillBackground(){
       context.globalCompositeOperation='destination-atop';
@@ -229,9 +227,6 @@
             zoomOut();
           };
 
-
-
-     
         function download(canvas, filename) {
           /// create an "off-screen" anchor tag
           var lnk = document.createElement('a'), e;
@@ -338,6 +333,7 @@
    </script>
    </head>
      <body>
+       <div id="BlowupLens" class ="BlowupLens"></div>
         <div class ="container-fluid top-buffer">
             <div class="row top-buffer">
       

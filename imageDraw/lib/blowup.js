@@ -41,6 +41,28 @@ $(function ($) {
       dataCanvas : "",
 
     }
+    var UID = {
+      _current: 0,
+      getNew: function(){
+        this._current++;
+        return this._current;
+      }
+    };
+    
+    HTMLElement.prototype.pseudoStyle = function(element,prop,value){
+      var _this = this;
+      var _sheetId = "pseudoStyles";
+      var _head = document.head || document.getElementsByTagName('head')[0];
+      var _sheet = document.getElementById(_sheetId) || document.createElement('style');
+      _sheet.id = _sheetId;
+      var className = "pseudoStyle" + UID.getNew();
+      
+      _this.className +=  " "+className; 
+      
+      _sheet.innerHTML += " ."+className+":"+element+"{"+prop+":"+value+"}";
+      _head.appendChild(_sheet);
+      return this;
+    };
 
     // Update defaults with custom attributes
     var $options = $.extend(defaults, attributes);
@@ -50,14 +72,15 @@ $(function ($) {
     $element.css("cursor", $options.cursor ? "crosshair" : "none");
 
     // Create magnification lens element
-    var lens = document.createElement("div");
-    lens.id = "BlowupLens";
+    var lens = document.getElementById("BlowupLens");
+  //  lens.id = "BlowupLens";
 
-    // Append the element to the body
-    $("body").append(lens);
+  //   // Append the element to the body
+  //   $("body").append(lens);
 
     // Updates styles
     $blowupLens = $("#BlowupLens");
+    console.log($blowupLens)
 
     $blowupLens.css({
       "position"          : "absolute",
@@ -71,7 +94,6 @@ $(function ($) {
       "border-radius"     : $options.round ? "50%" : "none",
       "box-shadow"        : $options.shadow,
       "background-repeat" : "no-repeat",
-      "canvas"            : $options.dataCanvas,
     });
 
     // // Show magnification lens
@@ -82,11 +104,8 @@ $(function ($) {
 
     // Mouse motion on image
     $element.mousemove(function (e) {
-      console.log("in blowup:",$options.pageY,$options.pageX);
+      //console.log("in blowup:",$options.pageY,$options.pageX);
 
-      // Lens position coordinates
-      var x = e['pageX'] || $options.pageX;
-      var y = e['pageY'] || $options.pageY;
       // /console.log($options.pageY,y)
       var lensX = e.pageX - $options.width / 2;
       var lensY = e.pageY - $options.height / 2;
@@ -104,18 +123,17 @@ $(function ($) {
       var backgroundSize = NATIVE_IMG.width * $options.scale + "px " + NATIVE_IMG.height * $options.scale + "px";
       // Apply styles to lens
       //console.log($options.dataCanvas)
-      
+      //url('" +  $IMAGE_URL + "'),
       $blowupLens.css({
         left                  : lensX,
         top                   : lensY,
-        "background-image"    : "url(" + $options.dataCanvas + "), url(" + $IMAGE_URL + ")",
+        "background-image"    : "url('"+$IMAGE_URL+"')",
         "background-size"     : backgroundSize,
-        "background-position" : backPos + ", " + backPos,
+        "background-position" : backPos,
         //"background-repeat"   : "no-repeat",
       });
 
     })
-        
     // Hide magnification lens
     $element.mouseleave(function () {
       $blowupLens.css("visibility", "hidden");

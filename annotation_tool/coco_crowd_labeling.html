@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <link rel="stylesheet" href='https://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/css/bootstrap-combined.min.css' >
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap-theme.min.css">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
+
+    <!-- <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet"> -->
+
+    <script src="static/js/kinetic-v5.1.0.min.js"></script>
+
+    <style>
+      body {
+
+        vertical-align: middle;
+      }
+      .modal-backdrop {background: none;}
+    
+      .my-btn {
+        width: 150px;
+      }
+      .top-buffer-btn { margin-top:0px; }
+
+      .btn {
+    padding: 14px 20px;
+    /* border: 0 none; */
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    
+    }
+    
+    .btn:focus, .btn:active:focus, .btn.active:focus {
+        outline: 0 none;
+    }
+    
+    .btn-primary {
+        background: #0099cc;
+        color: #ffffff;
+    }
+    
+    .btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active, .open > .dropdown-toggle.btn-primary {
+        background: #33a6cc;
+    }
+    
+    .btn-primary:active, .btn-primary.active {
+        background: #007299;
+        box-shadow: none;
+    }
+    .btn-wire{
+        background: rgb(156, 156, 156) !important;
+        color:white
+    }
+
+    .btn-wounds{
+        background: rgb(83, 0, 0) !important;
+        color: white
+    }
+    </style>
+    <script>
+        STATIC_ROOT = "static";
+
+        var init_time = $.now();
+        DRAW = 1;
+        ERASE = 0;
+        //DRAWLINE=
+        draw_state = DRAW;
+        var isOpera = !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
+        // Opera 8.0+ (UA detection to detect Blink/v8-powered Opera)
+        var isFirefox = typeof InstallTrigger !== 'undefined';   // Firefox 1.0+
+        var isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
+        // At least Safari 3+: "[object HTMLElementConstructor]"
+        var isChrome = !!window.chrome && !isOpera;              // Chrome 1+
+        var isIE = /*@cc_on!@*/false || !!document.documentMode;   // At least IE6
+        $(window).load(function(){
+            if (!isChrome){
+                alert('Sorry. This HIT only supports Chrome');
+                $('.btn').attr('disabled', 'disabled');
+            }
+            $('#btn-draw').on('click', function(){
+                jQuery.event.trigger({ type : 'keypress', which : 68 });
+            })
+            $('#btn-erase').on('click', function(){
+                jQuery.event.trigger({ type : 'keypress', which : 69 });
+            })
+            $('#btn-zoom-in').on('click', function(){
+                jQuery.event.trigger({ type : 'keypress', which : 90 });
+            })
+            $('#btn-zoom-out').on('click', function(){
+                jQuery.event.trigger({ type : 'keypress', which : 88 });
+            })
+
+            // uncomment submit form if you'd like to submit to MTurk
+            $('#btn-submit').on('click', function(){
+                // the show the annotated base64 region
+                var ans = explicitDrawImg.src;
+                $("input[name='isObj']").val(1)
+                submit_form();
+
+            })
+            $('#btn-submit-no-obj').on('click', function(){
+                $("input[name='isObj']").val(0)
+                submit_form();
+            })
+
+                // show dialog
+                $('.modal').modal('toggle');
+        });
+        function draw_state_toggle(drawColor){
+            draw_state = (draw_state == DRAW) ? ERASE: DRAW;
+            if (draw_state == DRAW){
+                $('#btn-erase').removeClass('active')
+                $('#btn-draw').addClass('active')
+                glassmask.fill(drawColor);
+                jQuery.event.trigger({ type : 'mousemove' });
+            }else{
+                $('#btn-draw').removeClass('active')
+                $('#btn-erase').addClass('active')
+                glassmask.fill('white');
+                jQuery.event.trigger({ type : 'mousemove' });
+            }
+        }
+        // ==================== submit =============================
+        function submit_form(){
+            $('.btn').attr("disabled", "disabled");
+            var c = 0;
+            // send back annotated region as base64 image
+            var ans = explicitDrawImg.src;
+            var duration = parseFloat($.now()-init_time) / 1000;
+            duration = duration.toString();
+            $("input[name='ans']").val(ans);
+            $("input[name='duration']").val(duration);
+            $('#mturk_form').submit();
+        }
+
+    </script>
+  </head>
+  <body>
+  <form id='mturk_form' action="MTURK_FORM_TO_SUBMIT">
+    <input type="hidden" id="hitId" name="hitId" value='MTURK_HIT_ID'>
+    <input type="hidden" id="assignmentId" name="assignmentId" value='MTURK_ASSIGNMENT_ID'>
+    <input type="hidden" id="workerId" name="workerId" value='MTURK_WORKER_ID'>
+    <input type="hidden" id="isObj" name="isObj" value='0'>
+    <input type="hidden" id="ans" name="ans" value=''>
+    <input type="hidden" id="duration" name="duration" value='0'>
+  </form>
+
+  <div class="modal hide fade" style="width:800px">
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+      <h3>Examples of expected results:</h3>
+    </div>
+    <div class="modal-body">
+      <img src="static/examples/example-1.jpg" style='width:250px'>
+      <img src="static/examples/example-2.jpg" style='width:500px'>
+    </div>
+    <div class="modal-footer">
+      <a href="#" class="btn">Close</a>
+      <!--<a href="#" class="btn btn-primary">Save changes</a>-->
+    </div>
+  </div>
+
+    <div style='margin-left:5pt; margin-top:5pt'>
+      <div style='font-size:16pt'>
+          Draw all unlabeled <span style='color:blue'>cat(s)</span> in the image.
+          <li style='font-size:12pt'> Find and draw on <span style='color:blue'>all cat(s)</span> that haven't been labeled.
+          <li style='font-size:12pt'> <span style='color:red'>No need</span> to draw on previously labeled (green) regions. It's fine to overlap.
+      </div>
+      <div style='margin-top:3px'>
+      <span>
+          <input id='btn-submit' type="submit" class="btn btn-primary" value="Submit">
+      </span>
+      <span>
+          <input id='btn-submit-no-obj' type="submit" class="btn btn-primary" value="No unlabeled cat(s)">
+      </span>
+      </div>
+      <div style ="margin-top:3px">
+      <span class="btn-group" >
+        <button id='btn-draw' type="button" class="btn active">
+            <i class="icon-pencil"></i> Draw (D)</button>
+          <button id='btn-erase' type="button"  class="btn">
+            <i class="fa fa-eraser"></i> Erase (E)</button>
+      </span>
+
+      <span class="btn-group" >
+        <button id='btn-zoom-in' type="button" class="btn">
+            <i class="icon-zoom-in"></i> Zoom In (Z or scroll)</button>
+          <button id='btn-zoom-out' type="button"  class="btn">
+            <i class="icon-zoom-out"></i> Zoom Out (X or scroll)</button>
+      </span>
+      <span class="btn-group" >
+      <button type="button" class="btn active" id="btndownload">Download</button>
+    </span>
+    </div>
+      <canvas id="canvas-img" style="display:none"></canvas>
+      <div id="container" style='margin-top:3px'></div>
+      <div id="container-invisible"></div>
+
+    </div>
+
+    <script src="static/js/crowd_labeling.js"></script>
+
+        <div class="row" style="margin-left:auto"> 
+
+                <div class="span top-buffer-btn">
+                <button type="button" class="btn btn-primary my-btn" id="btnmarker1" >Branch (A)</button>
+                </div>
+                <div class="span top-buffer-btn">
+                <button type="button" class="btn btn-success my-btn" id="btnmarker2" >Bud (Z)</button>
+                </div>
+                <div class="span top-buffer-btn">
+                <button type="button" class="btn btn-info my-btn"    id="btnmarker3">Branch2 (E)</button>
+                </div>
+                <div class="span top-buffer-btn">
+                <button type="button" class="btn btn-warning my-btn" id="btnmarker4">mark4 (Q)</button>
+                </div>
+                <div class="span top-buffer-btn">
+                <button type="button" class="btn btn-danger my-btn"  id="btnmarker5">mark5 (S)</button>
+                </div>
+                <div class="span top-buffer-btn">
+                  <button type="button" class="btn btn-wire" id="btnmarker5">wire (S)</button>
+                </div>
+                <div class="span top-buffer-btn">
+                    <button type="button" class="btn btn-wounds  my-btn" id="btnmarker5">wounds (S)</button>
+                </div>
+            </div>
+
+  
+  </body>
+</html>
