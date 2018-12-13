@@ -13,20 +13,35 @@
 
     <script src="static/js/kinetic-v5.1.0.min.js"></script>
 
-    <style>
-      body {
-
-        vertical-align: middle;
-      }
-      .modal-backdrop {background: none;}
+    <link rel="stylesheet" type="text/css" href="buttons.css">
     
+    <style>
+ 
+      .modal-backdrop {background: none;}
+      /* body{
+        background-image: linear-gradient(to right,white,  #FBEEC1);
+        background:;
+      } */
+      .content {
+        
+        margin: auto;
+        width: 70%;
+        margin-top: auto;
+        }
       .my-btn {
-        width: 150px;
+        width: 180px;
       }
-      .top-buffer-btn { margin-top:0px; }
+      .top-buffer-btn { margin-top:4px; }
+    .pos-center {
+        padding-left:0;
+        padding-right:0;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        }
 
       .btn {
-    padding: 14px 20px;
+    padding: 14px 10px;
     /* border: 0 none; */
     font-weight: 700;
     letter-spacing: 1px;
@@ -51,24 +66,17 @@
         background: #007299;
         box-shadow: none;
     }
-    .btn-wire{
-        background: rgb(156, 156, 156) !important;
-        color:white
-    }
 
-    .btn-wounds{
-        background: rgb(83, 0, 0) !important;
-        color: white
-    }
     </style>
     <script>
+        
         STATIC_ROOT = "static";
 
         var init_time = $.now();
         DRAW = 1;
         ERASE = 0;
-        var drawingLine=false;
-        draw_state = DRAW;
+        LINE = 2;
+        drawState = DRAW;
         var isOpera = !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
         // Opera 8.0+ (UA detection to detect Blink/v8-powered Opera)
         var isFirefox = typeof InstallTrigger !== 'undefined';   // Firefox 1.0+
@@ -88,7 +96,7 @@
                 jQuery.event.trigger({ type : 'keypress', which : 69 });
             })
             $('#btn-line').on('click', function(){
-                jQuery.event.trigger({ type : 'keypress', which : 58 });
+                jQuery.event.trigger({ type : 'keypress', which : 84 });
             })
             $('#btn-zoom-in').on('click', function(){
                 jQuery.event.trigger({ type : 'keypress', which : 90 });
@@ -113,18 +121,27 @@
                 // show dialog
                 $('.modal').modal('toggle');
         });
-        function draw_state_toggle(drawColor){
-            draw_state = (draw_state == DRAW) ? ERASE: DRAW;
-            if (draw_state == DRAW){
+        function draw_state_toggle(drawColor,drawState){
+            
+            if (drawState == DRAW){
                 $('#btn-erase').removeClass('active')
+                $('#btn-line').removeClass('active')
                 $('#btn-draw').addClass('active')
                 glassmask.fill(drawColor);
                 jQuery.event.trigger({ type : 'mousemove' });
-            }else{
+            }else if(drawState == ERASE){
                 $('#btn-draw').removeClass('active')
+                $('#btn-line').removeClass('active')
                 $('#btn-erase').addClass('active')
                 glassmask.fill('white');
                 jQuery.event.trigger({ type : 'mousemove' });
+            }
+            else if (drawState == LINE){
+                $('#btn-draw').removeClass('active')
+                $('#btn-erase').removeClass('active')
+                $('#btn-line').addClass('active')
+                jQuery.event.trigger({ type : 'mousemove' });
+
             }
         }
         // ==================== submit =============================
@@ -139,10 +156,40 @@
             $("input[name='duration']").val(duration);
             $('#mturk_form').submit();
         }
+        var historyStep = 0;
+        var history = [];
+        function makeHistory() {
+            historyStep++;
+            if (historyStep < history.length) {
+                history.length = historyStep;
+            }
+            json = layer.toJSON();
+                    history.push(json);
+        }
+        function undoHistory() {
+            if (historyStep > 0) {
+                historyStep--;
+                layer.destroy();
+                layer = Kinetic.Node.create(history[historyStep], 'container')
+                stage.add(layer);
+            }
+        }
+
+        function redoHistory() {
+            if (historyStep < history.length-1) {
+                historyStep++;
+                layer.destroy();
+                layer = Kinetic.Node.create(history[historyStep], 'container')
+                stage.add(layer);
+            }
+        }
 
     </script>
   </head>
   <body>
+
+
+
   <form id='mturk_form' action="MTURK_FORM_TO_SUBMIT">
     <input type="hidden" id="hitId" name="hitId" value='MTURK_HIT_ID'>
     <input type="hidden" id="assignmentId" name="assignmentId" value='MTURK_ASSIGNMENT_ID'>
@@ -167,73 +214,79 @@
     </div>
   </div>
 
-    <div style='margin-left:5pt; margin-top:5pt'>
-      <div style='font-size:16pt'>
-          Draw all unlabeled <span style='color:blue'>cat(s)</span> in the image.
-          <li style='font-size:12pt'> Find and draw on <span style='color:blue'>all cat(s)</span> that haven't been labeled.
-          <li style='font-size:12pt'> <span style='color:red'>No need</span> to draw on previously labeled (green) regions. It's fine to overlap.
-      </div>
-      <div style='margin-top:3px'>
-      <span>
-          <input id='btn-submit' type="submit" class="btn btn-primary" value="Submit">
-      </span>
-      <span>
-          <input id='btn-submit-no-obj' type="submit" class="btn btn-primary" value="No unlabeled cat(s)">
-      </span>
-      </div>
-      <div style ="margin-top:3px">
-      <span class="btn-group" >
-        <button id='btn-draw' type="button" class="btn active">
+  <div class="content">
+    <div class="row pos-center">
+        <span>
+        <span class="btn-toolbar">
+            <button id='btn-draw' type="button" class="btn active">
             <i class="icon-pencil"></i> Draw (D)</button>
-          <button id='btn-erase' type="button"  class="btn">
+            <button id='btn-erase' type="button"  class="btn">
             <i class="fa fa-eraser"></i> Erase (E)</button>
             <button id='btn-line' type="button"  class="btn">
-            <i class="fa fa-eraser"></i> Draw Line (T)</button>
-      </span>
-
-      <span class="btn-group" >
-        <button id='btn-zoom-in' type="button" class="btn">
+            <i class="fa fa-eraser"></i> Draw Line (T)</button>      
+            <button id='btn-zoom-in' type="button" class="btn">
             <i class="icon-zoom-in"></i> Zoom In (Z or scroll)</button>
-          <button id='btn-zoom-out' type="button"  class="btn">
+            <button id='btn-zoom-out' type="button"  class="btn">
             <i class="icon-zoom-out"></i> Zoom Out (X or scroll)</button>
-      </span>
-      <span class="btn-group" >
-      <button type="button" class="btn" id="btndownload">Download</button>
+        </span>
+
+        <span class="pull-right" >
+        <button type="submit" class="btn btn-primary" id="btndownload">Download</button>
+        </span>
     </span>
-    </div>
-      <canvas id="canvas-img" style="display:none"></canvas>
-      <div id="container" style='margin-top:3px'></div>
-      <div id="container-invisible"></div>
 
     </div>
 
-    <script src="static/js/crowd_labeling.js"></script>
+      
+     <div class="row pos-center">
+         <span>
+        <canvas id="canvas-img" class ="pos-center" style="display:none"></canvas>
+        <div id="container" style='margin-top:3px' class="pos-center"></div>
+            <script src="static/js/crowd_labeling.js"></script>    
+        </div>
+        </span>
 
-        <div class="row" style="margin-left:auto"> 
-
-                <div class="span top-buffer-btn">
-                <button type="button" class="btn btn-primary my-btn" id="btnmarker1" >Branch (A)</button>
-                </div>
-                <div class="span top-buffer-btn">
-                <button type="button" class="btn btn-success my-btn" id="btnmarker2" >Bud (Z)</button>
-                </div>
-                <div class="span top-buffer-btn">
-                <button type="button" class="btn btn-info my-btn"    id="btnmarker3">Branch2 (E)</button>
-                </div>
-                <div class="span top-buffer-btn">
-                <button type="button" class="btn btn-warning my-btn" id="btnmarker4">mark4 (Q)</button>
-                </div>
-                <div class="span top-buffer-btn">
-                <button type="button" class="btn btn-danger my-btn"  id="btnmarker5">mark5 (S)</button>
-                </div>
-                <div class="span top-buffer-btn">
-                  <button type="button" class="btn btn-wire" id="btnwire">wire (S)</button>
-                </div>
-                <div class="span top-buffer-btn">
-                    <button type="button" class="btn btn-wounds  my-btn" id="btnmarker5">wounds (S)</button>
-                </div>
+    
+        <div class="row pos-center"> 
+            <span class="span btn-group top-buffer-btn" >
+            <div class="pull-left ">
+            <button type="button" class="btn-brown my-btn" id="btnmarker1" >Trunc (A)</button>
             </div>
-
-  
+            <div class="span">
+            <button type="button" class="btn btn-success my-btn" id="btnmarker2" >Branch (Z)</button>
+            </div>
+            <div class="span">
+            <button type="button" class="btn-grey-blue my-btn" id="btnmarker3">Baguette (E)</button>
+            </div>
+            <div class="span">
+            <button type="button" class="btn btn-warning my-btn" id="btnmarker4">Tourelle (Q)</button>
+            </div>
+            <div class="span">
+            <button type="button" class="btn btn-danger my-btn"  id="btnmarker5">Vielle Grapes (S)</button>
+            </div>
+            <div class="span">
+                <button type="button" class="btn-wire my-btn" id="btnmarker6">Wire (S)</button>
+            </div>
+            </span>
+        </div>
+            
+            <div class="row pos-center">
+                <span class="span btn-group top-buffer-btn" >
+                    <div class="pull-left ">
+                        <button type="button" class="btn btn-primary my-btn" id="btnmarker7">wire (S)</button>
+                    </div>
+                    <div class="span ">
+                        <button type="button" class="btn-purple my-btn" id="btnmarker8">wire (S)</button>
+                    </div>
+                    <div class="span ">
+                    <button type="button" class="btn-yellow my-btn" id="btnmarker9">wire (S)</button>
+                    </div>
+                    <div class="span ">
+                    <button type="button" class="btn-salmon my-btn" id="btnmarker10">wire (S)</button>
+                    </div>
+                </span>
+            </div>       
+        </div>
+    </div> 
   </body>
 </html>

@@ -23,7 +23,7 @@ var isdrew = false;
 var R = 30;
 var zoom = 2;
 var maxZoom = 10;
-var opacityDraw = 0.7;
+var opacityDraw = 0.5;
 
 var lensInnerColor = 'white'
 var lensOuterColor = 'white'
@@ -32,29 +32,29 @@ var lineThickness = 10;
 var thicknessLens = 5;
 
 var painting = false;
-var drawingLine=false;
 var startLineX;
 var startLineY;
 var lineThicknessDrawLine = 3;
 var startX;
 var startY;
 var drawColor;// = window.getComputedStyle(btn1).backgroundColor; ;
-var maxWidth = 1200;
-
-
+var maxWidth = $(window).width()*0.7;
+var historyStep = 0;
+var historyLayer = [{}];
 
 function resize(img, maxwidth) {
     var w = img.width, h = img.height;
-    var r = maxwidth / w;
-    if (r < 1) {
-        img.width = w * r;
-        img.height = h * r;
-    }
-    return r;
+    var scale = maxwidth / w;
+    img.width = w * scale;
+    img.height = h * scale;
+        
+    return scale;
 }
+
 
 imageObj = new Image();
 imageObj.onload = function () {
+    
 
     scale = resize(imageObj, maxWidth);
 
@@ -66,16 +66,10 @@ imageObj.onload = function () {
     stage.states = new Object();
     stage.statesisdrawbrush = true;
 
-
-    // var sizer=scalePreserveAspectRatio(imageObj.width,imageObj.height, maxWidth,maxHeight);
     // /* initialize explicit layer */
     var canvas = $('#canvas-img');
     canvas.width = imageObj.width;
     canvas.height = imageObj.height;
-
-    // // hidden context for drawing
-    // var ctx_img = canvas[0].getContext("2d");
-    // ctx_img.drawImage(imageObj,0,0,imageObj.width, imageObj.height, 0,0, canvas.width,canvas.height)
 
     explicitDrawImg = imageObj.cloneNode();
     /* ======= base image layer ==============*/
@@ -93,6 +87,50 @@ imageObj.onload = function () {
 
     // add the layer to the stage
     stage.add(baseLayer);
+
+
+
+    function makeHistory() {
+        historyStep++;
+        if (historyStep < historyLayer.length) {
+            historyLayer.length = historyStep;
+        }
+        URL = baseDrawLayer.toDataURL();
+        
+        historyLayer.push(URL);
+    }
+    function undoHistory() {
+        if (historyStep > 0) {
+            historyStep--;
+            baseDrawLayer.clear();
+            previousLayer = new Image ();
+            previousLayer.src = historyLayer[historyStep];
+            previousLayer.onload = function(){
+                ctx = baseDrawLayer.getContext();
+                ctx.drawImage( previousLayer,0,0);
+            }
+            console.log(previousLayer)
+            // painting =true;
+            // brush_draw(1,1,1);
+            // painting = false;
+            // glassDraw.fillPatternImage(explicitDrawImg);
+            // glassZoom();
+        }
+    }
+    
+    function redoHistory() {
+        console.log(historyLayer.length, historyStep)
+        if (historyStep < historyLayer.length-1) {
+            historyStep++;
+            baseDrawLayer.clear();
+            derniereLayer = new Image ();
+            derniereLayer.src = historyLayer[historyStep];
+            derniereLayer.onload = function(){
+                ctx = baseDrawLayer.getContext();
+                ctx.drawImage( derniereLayer,0,0);
+            }
+        }
+    }
 
     /* ======= magnifying glass layer ==============*/
 
@@ -144,6 +182,8 @@ imageObj.onload = function () {
         var x = glass.x();
         var y = glass.y();
 
+        
+        // else {
         if (zoom <= 1) {
             glass.radius(R * 4);
             glass.fillPatternOffsetX(x / scale);
@@ -181,20 +221,25 @@ imageObj.onload = function () {
         /* hide drawing shape */
         glassLayer.moveToTop()
         glassDrawLayer.moveToTop();
+        glassmask.moveToTop();
+        
         if (!isdrew) { glassLayer.moveToTop(); }
+
+        if (drawState == LINE){
+            glassmask.moveToBottom();
+        }
 
     }
 
     /* ============ drawing a Line ==============*/
     
     var tmpDrawLineLayer= new Kinetic.Layer();
-    // stage.add(tmpDrawLineLayer);
+
     function drawLine(mouseX, mouseY,lineThickness){
 
         //This removes the previously drawn lines (of this session of line-drawing) 
         var groups = tmpDrawLineLayer.find('Shape');
         groups.each(function(group) {
-            console.log(group)
             group.remove();
 
         });
@@ -225,36 +270,34 @@ imageObj.onload = function () {
         if (dy<lineThicknessDrawLine){dy = lineThicknessDrawLine}
         if (dx<lineThicknessDrawLine){dx = lineThicknessDrawLine}
         var drawData = ctx.getImageData(x1, y1, dx, dy);
-        
 
         var ctx = baseDrawLayer.getContext();
 
         var imgData = ctx.getImageData(x1, y1, dx, dy);
-        //console.log(drawColor)
 
         var RGB = drawColor.slice(4, -1);
         var R = parseInt(RGB.split(",")[0]);
         var G = parseInt(RGB.split(",")[1]);
         var B = parseInt(RGB.split(",")[2]);
+        
+        for (i = 0; i < imgData.data.length; i += 4) {
 
-        if (draw_state == DRAW) {
-
-            for (i = 0; i < imgData.data.length; i += 4) {
-
-                if (drawData.data[i + 3] != 0) {
-                    imgData.data[i] = R;
-                    imgData.data[i + 1] = G;
-                    imgData.data[i + 2] = B;
-                    imgData.data[i + 3] = parseInt(opacityDraw * 255);
-                }
-
+            if (drawData.data[i + 3] != 0) {
+                imgData.data[i] = R;
+                imgData.data[i + 1] = G;
+                imgData.data[i + 2] = B;
+                imgData.data[i + 3] = parseInt(opacityDraw * 255);
             }
-        } 
+        }
+     
         ctx.putImageData(imgData, x1, y1);
         stage.states.isdrawbrush = false;
         explicitDrawImg.src = baseDrawLayer.getCanvas().toDataURL();
         baseDraw.fillPatternImage(explicitDrawImg);
         isdrew = true;
+        tmpDrawLineLayer.remove()
+
+        explicitDrawImg.onload= function() {makeHistory()};
     }   
     /* ============ drawing layer ==============*/
     stage.add(baseDrawLayer);
@@ -273,7 +316,7 @@ imageObj.onload = function () {
         } else {
             var lineThickness = R / zoom;
         }
-        if(drawingLine){
+        if(drawState == LINE){
             startLineX = startX;
             startLineY = startY;
             drawLine(startX, startY, lineThickness)
@@ -282,21 +325,25 @@ imageObj.onload = function () {
     }
     stage.on('mouseup', function (ev) {
         painting = false;
-        if(drawingLine){
+        if(drawState == LINE){
             var mouseX = ev.evt.x - $('#container').position().left + window.pageXOffset;;
             var mouseY = ev.evt.y - $('#container').position().top + window.pageYOffset;
             if (typeof mouseX === 'undefined') {
                 mouseX = ev.evt.clientX - $('#container').position().left + window.pageXOffset;;
                 mouseY = ev.evt.clientY; - $('#container').position().top + window.pageYOffset;
             }
-            if(mouseX != startLineX){
+            if(mouseX != startLineX && mouseY != startLineY ){
             addDrawnLine(mouseX,mouseY)
             }
         }
+        else {     //when adding a line history has to wait till line is
+        makeHistory()}
+
     });
 
     stage.on('mousemove', onmousemove)
     function onmousemove(ev) {
+        
         if (zoom < 1) {
             var lineThickness = R / zoom;
         } else {
@@ -318,7 +365,7 @@ imageObj.onload = function () {
         var dy = mouseY - startY;
         var rectCount = Math.sqrt(dx * dx + dy * dy) / (lineThickness);
 
-        if (drawingLine){
+        if (drawState == LINE){
             tmpDrawLine = drawLine(mouseX,mouseY,lineThickness)
         }
         else{
@@ -376,15 +423,13 @@ imageObj.onload = function () {
         var ctx = baseDrawLayer.getContext();
 
         var imgData = ctx.getImageData(x - _R, y - _R, 2 * _R + 1, 2 * _R + 1);
-        //console.log(drawColor)
 
         var RGB = drawColor.slice(4, -1);
         var R = parseInt(RGB.split(",")[0]);
         var G = parseInt(RGB.split(",")[1]);
         var B = parseInt(RGB.split(",")[2]);
 
-        if (draw_state == DRAW) {
-
+        if (drawState == DRAW) {
             for (i = 0; i < imgData.data.length; i += 4) {
 
                 if (drawData.data[i + 3] != 0) {
@@ -395,7 +440,7 @@ imageObj.onload = function () {
                 }
 
             }
-        } else if (draw_state == ERASE) {
+        } else if (drawState == ERASE) {
             for (i = 0; i < imgData.data.length; i += 4) {
                 if (drawData.data[i + 3] != 0) {
                     imgData.data[i] = R;
@@ -413,6 +458,7 @@ imageObj.onload = function () {
         explicitDrawImg.src = baseDrawLayer.getCanvas().toDataURL();
         baseDraw.fillPatternImage(explicitDrawImg);
         isdrew = true;
+        
     } // draw brush end
 
     /* draw image in glass */
@@ -427,7 +473,6 @@ imageObj.onload = function () {
         radius: R * 4,
         opacity: 1,
     });
-    console.log(glassDraw)
     glassDraw.setStroke(null);
     glassDrawLayer.add(glassDraw);
     stage.add(glassDrawLayer);
@@ -446,24 +491,33 @@ imageObj.onload = function () {
             glassZoom();
           }
           if (ev.which == 68 || ev.which == 100){
-            if (draw_state != DRAW){
-                draw_state_toggle(drawColor);
-            }
-              glassZoom();
+            drawState = DRAW;
+            draw_state_toggle(drawColor, drawState);
+            glassZoom();
           }
           if (ev.which == 69 || ev.which == 101){
-            if (draw_state != ERASE){
-                draw_state_toggle(drawColor);
-            }
-              glassZoom();
+            drawState = ERASE;
+            draw_state_toggle(drawColor, drawState);
+            glassZoom();
           }
-          if (ev.which == 58 || ev.which == 67){
-            
-            drawingLine=true;
-          }
+          if (ev.which == 84 || ev.key == "t"){
 
-        
+            drawState = LINE;
+            draw_state_toggle(drawColor, drawState);
+            glassZoom();
+          }   
     });
+    $(document).keydown( function (ev){
+        
+        if (ev.keyCode == 90 && ev.shiftKey  && ev.ctrlKey ) {
+            console.log("CRTL+SHIFT+Z")
+            redoHistory();
+        }
+        else if (ev.keyCode == 90 && ev.ctrlKey) {
+            console.log("CTRL+Z")
+            undoHistory();
+        };
+    })
     var handleWheel = function (event) {
         // cross-browser wheel delta
         // Chrome / IE: both are set to the same thing - WheelEvent for Chrome, MouseWheelEvent for IE
@@ -544,10 +598,17 @@ $(document).ready(function () {
     function changeDrawColor(button) {
         drawColor = window.getComputedStyle(button).backgroundColor;
 
-        //Dunno why but this works, jsut calling draw_toggle_brush(drawColor) does not for sxome reason.....
-        draw_state = ERASE;
-        jQuery.event.trigger({ type: 'keypress', which: 68 });
-        draw_state = DRAW;
+        //NEED to call jQuery event... 
+        //Just calling draw_toggle_brush(drawColor) and glassZoom() does not work for some reason.....
+       if(drawState == ERASE || drawState == DRAW){
+           drawState = DRAW;
+           jQuery.event.trigger({ type : 'keypress', which : 68 });
+        }
+        else{ //if == LINE
+            jQuery.event.trigger({ type : 'keypress', which : 84 });
+        }
+       
+       
     }
 
     var btnDownload = document.getElementById("btndownload");
@@ -557,8 +618,7 @@ $(document).ready(function () {
     }
     var btn1 = document.getElementById("btnmarker1");
     btn1.onclick = function () {
-        changeDrawColor(this);;
-        //drawGlassBrush();
+        changeDrawColor(this);
     };
     //Initiate first drawing color
     btn1.onclick();
@@ -566,23 +626,52 @@ $(document).ready(function () {
 
     var btn2 = document.getElementById("btnmarker2");
     btn2.onclick = function () {
+        drawState = DRAW;
         changeDrawColor(this);
     };
     var btn3 = document.getElementById("btnmarker3");
     btn3.onclick = function () {
+        drawState = DRAW;
         changeDrawColor(this);
     };
     var btn4 = document.getElementById("btnmarker4");
     btn4.onclick = function () {
+        drawState = DRAW;
         changeDrawColor(this);
     };
     var btn5 = document.getElementById("btnmarker5");
     btn5.onclick = function () {
+        drawState = DRAW;
         changeDrawColor(this);
     };
-    var btn6 = document.getElementById("btnwire");
+    var btn6 = document.getElementById("btnmarker6");
     btn6.onclick = function () {
+        drawState =LINE
+        changeDrawColor(this);
+        // draw_state_toggle(drawColor, drawState =LINE);
+    }
+    var btn7 = document.getElementById("btnmarker7");
+    btn7.onclick = function () {
+        drawState = DRAW;
+        changeDrawColor(this);
+        
     };
+    var btn8 = document.getElementById("btnmarker8");
+    btn8.onclick = function () {
+        drawState = DRAW;
+        changeDrawColor(this);
+    };
+    var btn9 = document.getElementById("btnmarker9");
+    btn9.onclick = function () {
+        drawState = DRAW;
+        changeDrawColor(this);
+    };
+    var btn10 = document.getElementById("btnmarker10");
+    btn10.onclick = function () {
+        drawState = DRAW;
+        changeDrawColor(this);
+    };
+    
 
     $(document).keypress(function (ev){
         if (ev.key=="a"){
@@ -606,4 +695,7 @@ $(document).ready(function () {
 
 
 imageObj.src = STATIC_ROOT + '/some.png'
+imageObj.classList.add("pos-center")
+imageObj.classList.add("img-rounded")
+console.log(imageObj)
 
