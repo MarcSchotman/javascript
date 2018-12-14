@@ -100,16 +100,12 @@ imageObj.onload = function () {
             historyLayer.length = historyStep;
         }
         URL = explicitDrawImg.src;
-        console.log(URL)
         historyLayer.push(URL);
     }
     function undoHistory() {
 
         if (historyStep > 1) {
-            console.log("yea")
-            console.log(historyStep)
             historyStep--;
-            console.log(historyStep)
             previousLayer = new Image ();
             previousLayer.src = historyLayer[historyStep];
             previousLayer.onload = function(){
@@ -119,17 +115,11 @@ imageObj.onload = function () {
                 explicitDrawImg.src = historyLayer[historyStep]
                 glassDraw.fillPatternImage(explicitDrawImg);
             }
-            console.log(historyStep)
-            // painting =true;
-            // brush_draw(1,1,1);
-            // painting = false;
-            // glassDraw.fillPatternImage(explicitDrawImg);
-            // glassZoom();
         }
     }
     
     function redoHistory() {
-        console.log(historyLayer.length, historyStep)
+    
         if (historyStep < historyLayer.length-1) {
             historyStep++;
             baseDrawLayer.clear();
@@ -145,8 +135,6 @@ imageObj.onload = function () {
     }
 
     /* ======= magnifying glass layer ==============*/
-
-
     var glass = new Kinetic.Circle({
         fillPatternImage: imageObj,
         fillPatternScaleX: zoom,
@@ -194,8 +182,6 @@ imageObj.onload = function () {
         var x = glass.x();
         var y = glass.y();
 
-        
-        // else {
         if (zoom <= 1) {
             glass.radius(R * 4);
             glass.fillPatternOffsetX(x / scale);
@@ -260,8 +246,7 @@ imageObj.onload = function () {
            points: [startLineX, startLineY, mouseX,mouseY],
            stroke: drawColor,
            strokeWidth: lineThicknessDrawLine,
-           opacity: opacityDraw,
-           
+           opacity: opacityDraw,      
         });
 
         stage.add(tmpDrawLineLayer);
@@ -287,7 +272,6 @@ imageObj.onload = function () {
                     imgData.data[i + 2] = B;
                     imgData.data[i + 3] = parseInt(opacityDraw * 255);
                 }
-
             }
         } else if (drawState == ERASE) {
             for (i = 0; i < imgData.data.length; i += 4) {
@@ -296,8 +280,7 @@ imageObj.onload = function () {
                     imgData.data[i + 1] = G;
                     imgData.data[i + 2] = B;
                     imgData.data[i + 3] = 0;
-                }
-                
+                }               
             }
         }
         ctx.putImageData(imgData, x1, y1);
@@ -324,8 +307,8 @@ imageObj.onload = function () {
         drawThis(drawData, x1,y1,dx,dy);
 
         tmpDrawLineLayer.remove()
-        makeHistory(); console.log("SAVING")
-        //explicitDrawImg.onload= function() {makeHistory(); console.log("SAVING")};
+        makeHistory();
+        
     }   
     /* ============ drawing layer ==============*/
     stage.add(baseDrawLayer);
@@ -427,7 +410,6 @@ imageObj.onload = function () {
     });
     baseDrawLayer.add(baseDraw);
 
-
     var tmpDrawLayer = new Kinetic.Layer();
 
     function brush_draw(x, y, lineThickness) {
@@ -479,10 +461,9 @@ imageObj.onload = function () {
     console.log(imageObj.width, imageObj.height)
     var  drawData = ctx.getImageData(0, 0, imageObj.width, imageObj.height);
     
+    //as there is nothing draw all the imgData[i+3] will be 0 and thus only the naked image will be drawn on explicitDrawImg
     drawThis(drawData,0,0,imageObj.width, imageObj.height);
     makeHistory();
-
-
 
     // keyboard event
     $(document).keypress(function (ev) {
@@ -682,7 +663,7 @@ $(document).ready(function () {
         if (ev.key=="a"){
             btn1.onclick()
         }
-        if (ev.key=="z"){
+        if (ev.key=="z" && ev.keydown == ev.ctrlKey){
             btn2.onclick()
         }
         if (ev.key=="e"){
