@@ -87,13 +87,13 @@
                 $('.btn').attr('disabled', 'disabled');
             }
             $('#btn-draw').on('click', function(){
-                jQuery.event.trigger({ type : 'keypress', which : 68 });
+                jQuery.event.trigger({ type : 'keypress', which : 81 });
             })
             $('#btn-erase').on('click', function(){
-                jQuery.event.trigger({ type : 'keypress', which : 69 });
+                jQuery.event.trigger({ type : 'keypress', which : 83 });
             })
             $('#btn-line').on('click', function(){
-                jQuery.event.trigger({ type : 'keypress', which : 84 });
+                jQuery.event.trigger({ type : 'keypress', which : 68 });
             })
             $('#btn-zoom-in').on('click', function(){
                 jQuery.event.trigger({ type : 'keypress', which : 90 });
@@ -108,8 +108,8 @@
                 var ans = explicitDrawImg.src;
                 $("input[name='isObj']").val(1)
                 submit_form();
-
             })
+
             $('#btn-submit-no-obj').on('click', function(){
                 $("input[name='isObj']").val(0)
                 submit_form();
@@ -138,7 +138,6 @@
                 $('#btn-erase').removeClass('active')
                 $('#btn-line').addClass('active')
                 jQuery.event.trigger({ type : 'mousemove' });
-
             }
         }
         // ==================== submit =============================
@@ -153,7 +152,6 @@
             $("input[name='duration']").val(duration);
             $('#mturk_form').submit();
         }
-   
 
     </script>
   </head>
@@ -179,7 +177,6 @@
     </div>
     <div class="modal-footer">
       <a href="#" class="btn">Close</a>
-      <!--<a href="#" class="btn btn-primary">Save changes</a>-->
     </div>
   </div>
 
@@ -188,22 +185,23 @@
         <span>
         <span class="btn-toolbar">
             <button id='btn-draw' type="button" class="btn active">
-            <i class="icon-pencil"></i> Draw (D)</button>
+            <i class="icon-pencil"></i> Draw (Q)</button>
             <button id='btn-erase' type="button"  class="btn">
-            <i class="fa fa-eraser"></i> Erase (E)</button>
+            <i class="fa fa-eraser"></i> Erase (S)</button>
             <button id='btn-line' type="button"  class="btn">
-            <i class="fa fa-eraser"></i> Draw Line (T)</button>      
+            <i class="fa fa-eraser"></i> Draw Line (D)</button>      
             <button id='btn-zoom-in' type="button" class="btn">
-            <i class="icon-zoom-in"></i> Zoom In (Z or scroll)</button>
+            <i class="icon-zoom-in"></i> Zoom In (scroll)</button>
             <button id='btn-zoom-out' type="button"  class="btn">
-            <i class="icon-zoom-out"></i> Zoom Out (X or scroll)</button>
+            <i class="icon-zoom-out"></i> Zoom Out (scroll)</button>
+            <button id='btn-undo' type="button"  class="btn">Undo (crtl+Z)</button>
+            <button id='btn-redo' type="button"  class="btn">Redo (crtl+shift+Z)</button>
         </span>
 
         <span class="pull-right" >
         <button type="submit" class="btn btn-primary" id="btndownload">Download</button>
         </span>
     </span>
-
     </div>
 
       
@@ -214,27 +212,26 @@
             <script src="static/js/crowd_labeling.js"></script>    
         </div>
         </span>
-
     
         <div class="row pos-center"> 
             <span class="span btn-group top-buffer-btn" >
             <div class="pull-left ">
-            <button type="button" class="btn-brown my-btn" id="btnmarker1" >Trunc (A)</button>
+            <button type="button" class="btn-brown my-btn" id="btnmarker1" >Trunc</button>
             </div>
             <div class="span">
-            <button type="button" class="btn btn-success my-btn" id="btnmarker2" >Branch (Z)</button>
+            <button type="button" class="btn btn-success my-btn" id="btnmarker2" >Branch</button>
             </div>
             <div class="span">
-            <button type="button" class="btn-grey-blue my-btn" id="btnmarker3">Baguette (E)</button>
+            <button type="button" class="btn-grey-blue my-btn" id="btnmarker3">Baguette</button>
             </div>
             <div class="span">
-            <button type="button" class="btn btn-warning my-btn" id="btnmarker4">Tourelle (Q)</button>
+            <button type="button" class="btn btn-warning my-btn" id="btnmarker4">Tourelle</button>
             </div>
             <div class="span">
-            <button type="button" class="btn btn-danger my-btn"  id="btnmarker5">Vielle Grapes (S)</button>
+            <button type="button" class="btn btn-danger my-btn"  id="btnmarker5">Vielle Grapes</button>
             </div>
             <div class="span">
-                <button type="button" class="btn-wire my-btn" id="btnmarker6">Wire (S)</button>
+                <button type="button" class="btn-wire my-btn" id="btnmarker6">Wire</button>
             </div>
             </span>
         </div>
@@ -242,16 +239,31 @@
             <div class="row pos-center">
                 <span class="span btn-group top-buffer-btn" >
                     <div class="pull-left ">
-                        <button type="button" class="btn btn-primary my-btn" id="btnmarker7">wire (S)</button>
+                        <button type="button" class="btn btn-primary my-btn" id="btnmarker7">Bud</button>
                     </div>
                     <div class="span ">
-                        <button type="button" class="btn-purple my-btn" id="btnmarker8">wire (S)</button>
+                        <button type="button" class="btn-purple my-btn" id="btnmarker8">Cordons </button>
                     </div>
                     <div class="span ">
-                    <button type="button" class="btn-yellow my-btn" id="btnmarker9">wire (S)</button>
+                    <button type="button" class="btn-yellow my-btn" id="btnmarker9">coursons </button>
                     </div>
                     <div class="span ">
-                    <button type="button" class="btn-salmon my-btn" id="btnmarker10">wire (S)</button>
+                    <button type="button" class="btn-salmon my-btn" id="btnmarker10">wounds</button>
+                    </div>
+                </span>
+
+                
+                <span class="span2" style = "margin-top: 15px">
+                        <div class="row pos-center">
+                        <div class="slidecontainer">
+                                <input type="range" min="1" max="3" value="2" class="slider" id="myRange">
+                        </div>
+                    </div>
+                    <div class="row pos-center">
+                         <span class = "pull-left">Image</span>
+                         <span class ="span">Overlay</span>
+                         <span class = "pull-right">Mask</span>
+
                     </div>
                 </span>
             </div>       
