@@ -31,6 +31,7 @@ var lensOuterColor = 'white'
 var lineThickness = 10;
 var thicknessLens = 5;
 
+var firstClick =true;
 var painting = false;
 var startLineX;
 var startLineY;
@@ -72,6 +73,9 @@ imageObj.onload = function () {
     canvas.height = imageObj.height;
 
     explicitDrawImg = imageObj.cloneNode();
+    explicitDrawImg.width = imageObj.width;
+    explicitDrawImg.height = imageObj.height;
+
     /* ======= base image layer ==============*/
 
     var imageBase = new Kinetic.Image({
@@ -95,21 +99,27 @@ imageObj.onload = function () {
         if (historyStep < historyLayer.length) {
             historyLayer.length = historyStep;
         }
-        URL = baseDrawLayer.toDataURL();
-        
+        URL = explicitDrawImg.src;
+        console.log(URL)
         historyLayer.push(URL);
     }
     function undoHistory() {
-        if (historyStep > 0) {
+
+        if (historyStep > 1) {
+            console.log("yea")
+            console.log(historyStep)
             historyStep--;
-            baseDrawLayer.clear();
+            console.log(historyStep)
             previousLayer = new Image ();
             previousLayer.src = historyLayer[historyStep];
             previousLayer.onload = function(){
+                baseDrawLayer.clear();
                 ctx = baseDrawLayer.getContext();
                 ctx.drawImage( previousLayer,0,0);
+                explicitDrawImg.src = historyLayer[historyStep]
+                glassDraw.fillPatternImage(explicitDrawImg);
             }
-            console.log(previousLayer)
+            console.log(historyStep)
             // painting =true;
             // brush_draw(1,1,1);
             // painting = false;
@@ -128,6 +138,8 @@ imageObj.onload = function () {
             derniereLayer.onload = function(){
                 ctx = baseDrawLayer.getContext();
                 ctx.drawImage( derniereLayer,0,0);
+                explicitDrawImg.src = historyLayer[historyStep]
+                glassDraw.fillPatternImage(explicitDrawImg);
             }
         }
     }
@@ -230,8 +242,7 @@ imageObj.onload = function () {
         }
 
     }
-
-    /* ============ drawing a Line ==============*/
+    /* ============ drawing a Line ============== */
     
     var tmpDrawLineLayer= new Kinetic.Layer();
 
@@ -257,6 +268,45 @@ imageObj.onload = function () {
         tmpDrawLineLayer.add(tmpDrawLine);
         tmpDrawLineLayer.drawScene();
     }
+    function drawThis(drawData,x1,y1,x2,y2){
+
+        var ctx = baseDrawLayer.getContext();
+        var imgData = ctx.getImageData(x1, y1, x2, y2);
+        
+        var RGB = drawColor.slice(4, -1);
+        var R = parseInt(RGB.split(",")[0]);
+        var G = parseInt(RGB.split(",")[1]);
+        var B = parseInt(RGB.split(",")[2]);
+        
+        if (drawState == DRAW || drawState == LINE) {
+            for (i = 0; i < imgData.data.length; i += 4) {
+
+                if (drawData.data[i + 3] != 0) {
+                    imgData.data[i] = R;
+                    imgData.data[i + 1] = G;
+                    imgData.data[i + 2] = B;
+                    imgData.data[i + 3] = parseInt(opacityDraw * 255);
+                }
+
+            }
+        } else if (drawState == ERASE) {
+            for (i = 0; i < imgData.data.length; i += 4) {
+                if (drawData.data[i + 3] != 0) {
+                    imgData.data[i] = R;
+                    imgData.data[i + 1] = G;
+                    imgData.data[i + 2] = B;
+                    imgData.data[i + 3] = 0;
+                }
+                
+            }
+        }
+        ctx.putImageData(imgData, x1, y1);
+        stage.states.isdrawbrush = false;
+        explicitDrawImg.src = baseDrawLayer.getCanvas().toDataURL();
+        baseDraw.fillPatternImage(explicitDrawImg);
+        isdrew = true;
+    }
+
     function addDrawnLine(mouseX, mouseY,){
 
         var ctx = tmpDrawLineLayer.getContext();
@@ -271,38 +321,17 @@ imageObj.onload = function () {
         if (dx<lineThicknessDrawLine){dx = lineThicknessDrawLine}
         var drawData = ctx.getImageData(x1, y1, dx, dy);
 
-        var ctx = baseDrawLayer.getContext();
+        drawThis(drawData, x1,y1,dx,dy);
 
-        var imgData = ctx.getImageData(x1, y1, dx, dy);
-
-        var RGB = drawColor.slice(4, -1);
-        var R = parseInt(RGB.split(",")[0]);
-        var G = parseInt(RGB.split(",")[1]);
-        var B = parseInt(RGB.split(",")[2]);
-        
-        for (i = 0; i < imgData.data.length; i += 4) {
-
-            if (drawData.data[i + 3] != 0) {
-                imgData.data[i] = R;
-                imgData.data[i + 1] = G;
-                imgData.data[i + 2] = B;
-                imgData.data[i + 3] = parseInt(opacityDraw * 255);
-            }
-        }
-     
-        ctx.putImageData(imgData, x1, y1);
-        stage.states.isdrawbrush = false;
-        explicitDrawImg.src = baseDrawLayer.getCanvas().toDataURL();
-        baseDraw.fillPatternImage(explicitDrawImg);
-        isdrew = true;
         tmpDrawLineLayer.remove()
-
-        explicitDrawImg.onload= function() {makeHistory()};
+        makeHistory(); console.log("SAVING")
+        //explicitDrawImg.onload= function() {makeHistory(); console.log("SAVING")};
     }   
     /* ============ drawing layer ==============*/
     stage.add(baseDrawLayer);
     stage.on('mousedown', onmousedown);
     function onmousedown(ev) {
+
         startX = ev.evt.x - $('#container').position().left + window.pageXOffset;;
         startY = ev.evt.y - $('#container').position().top + window.pageYOffset;
         if (typeof startX === 'undefined') {
@@ -325,6 +354,7 @@ imageObj.onload = function () {
     }
     stage.on('mouseup', function (ev) {
         painting = false;
+        
         if(drawState == LINE){
             var mouseX = ev.evt.x - $('#container').position().left + window.pageXOffset;;
             var mouseY = ev.evt.y - $('#container').position().top + window.pageYOffset;
@@ -336,7 +366,7 @@ imageObj.onload = function () {
             addDrawnLine(mouseX,mouseY)
             }
         }
-        else {     //when adding a line history has to wait till line is
+        else {//when adding a line history has to wait till line is
         makeHistory()}
 
     });
@@ -420,44 +450,7 @@ imageObj.onload = function () {
         var drawData = ctx.getImageData(x - _R, y - _R, 2 * _R + 1, 2 * _R + 1);
         tmpDraw.remove()
 
-        var ctx = baseDrawLayer.getContext();
-
-        var imgData = ctx.getImageData(x - _R, y - _R, 2 * _R + 1, 2 * _R + 1);
-
-        var RGB = drawColor.slice(4, -1);
-        var R = parseInt(RGB.split(",")[0]);
-        var G = parseInt(RGB.split(",")[1]);
-        var B = parseInt(RGB.split(",")[2]);
-
-        if (drawState == DRAW) {
-            for (i = 0; i < imgData.data.length; i += 4) {
-
-                if (drawData.data[i + 3] != 0) {
-                    imgData.data[i] = R;
-                    imgData.data[i + 1] = G;
-                    imgData.data[i + 2] = B;
-                    imgData.data[i + 3] = parseInt(opacityDraw * 255);
-                }
-
-            }
-        } else if (drawState == ERASE) {
-            for (i = 0; i < imgData.data.length; i += 4) {
-                if (drawData.data[i + 3] != 0) {
-                    imgData.data[i] = R;
-                    imgData.data[i + 1] = G;
-                    imgData.data[i + 2] = B;
-                    imgData.data[i + 3] = 0;
-                }
-                
-            }
-        }
-        ctx.putImageData(imgData, x - _R, y - _R);
-
-
-        stage.states.isdrawbrush = false;
-        explicitDrawImg.src = baseDrawLayer.getCanvas().toDataURL();
-        baseDraw.fillPatternImage(explicitDrawImg);
-        isdrew = true;
+        drawThis(drawData,x - _R, y - _R, 2 * _R + 1, 2 * _R + 1 )
         
     } // draw brush end
 
@@ -477,6 +470,18 @@ imageObj.onload = function () {
     glassDrawLayer.add(glassDraw);
     stage.add(glassDrawLayer);
     glassDrawLayer.draw();
+
+    /* ============ Drawing the first explicityDrawImg ========== */
+    /* ============       For first history input      ========== */
+
+    var tmpDrawLayer = new Kinetic.Layer();
+    var ctx = tmpDrawLayer.getContext();
+    console.log(imageObj.width, imageObj.height)
+    var  drawData = ctx.getImageData(0, 0, imageObj.width, imageObj.height);
+    
+    drawThis(drawData,0,0,imageObj.width, imageObj.height);
+    makeHistory();
+
 
 
     // keyboard event

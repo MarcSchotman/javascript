@@ -18,10 +18,7 @@
     <style>
  
       .modal-backdrop {background: none;}
-      /* body{
-        background-image: linear-gradient(to right,white,  #FBEEC1);
-        background:;
-      } */
+  
       .content {
         
         margin: auto;
@@ -156,39 +153,11 @@
             $("input[name='duration']").val(duration);
             $('#mturk_form').submit();
         }
-        var historyStep = 0;
-        var history = [];
-        function makeHistory() {
-            historyStep++;
-            if (historyStep < history.length) {
-                history.length = historyStep;
-            }
-            json = layer.toJSON();
-                    history.push(json);
-        }
-        function undoHistory() {
-            if (historyStep > 0) {
-                historyStep--;
-                layer.destroy();
-                layer = Kinetic.Node.create(history[historyStep], 'container')
-                stage.add(layer);
-            }
-        }
-
-        function redoHistory() {
-            if (historyStep < history.length-1) {
-                historyStep++;
-                layer.destroy();
-                layer = Kinetic.Node.create(history[historyStep], 'container')
-                stage.add(layer);
-            }
-        }
+   
 
     </script>
   </head>
   <body>
-
-
 
   <form id='mturk_form' action="MTURK_FORM_TO_SUBMIT">
     <input type="hidden" id="hitId" name="hitId" value='MTURK_HIT_ID'>
